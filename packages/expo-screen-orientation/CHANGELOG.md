@@ -10,6 +10,8 @@
 
 ### 🐛 Bug fixes
 
+- Fixed `screenOrientationDidChange` not being called when a `Modal` was open on iOS. ([#11323](https://github.com/expo/expo/pull/11323) by [@cruzach](https://github.com/cruzach))
+
 ## 2.1.0 — 2020-11-17
 
 _This version does not introduce any user-facing changes._
