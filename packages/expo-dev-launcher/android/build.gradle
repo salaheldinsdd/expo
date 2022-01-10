@@ -1,8 +1,13 @@
 import groovy.json.JsonSlurper
 
+group = 'host.exp.exponent'
+version = '0.10.0'
+
+apply from: './maven-eas.gradle'
+if (findProperty('isAarProject')) { return }
+
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'maven'
 
 buildscript {
   // Simple helper that allows the root project to override versions declared by this library.
