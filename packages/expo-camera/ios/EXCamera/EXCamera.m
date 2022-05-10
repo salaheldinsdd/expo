@@ -498,6 +498,44 @@ previewPhotoSampleBuffer:(CMSampleBufferRef)previewPhotoSampleBuffer
   }
 }
 
+-(void)updateVideoWithOptions:(NSDictionary *)options onReject:(EXPromiseRejectBlock)reject
+{
+    AVCaptureConnection *connection = [_movieFileOutput connectionWithMediaType:AVMediaTypeVideo];
+    // TODO: Add support for videoStabilizationMode (right now it is not only read, never written to)
+    if (connection.isVideoStabilizationSupported == NO) {
+      EXLogWarn(@"%s: Video Stabilization is not supported on this device.", __func__);
+    } else {
+      [connection setPreferredVideoStabilizationMode:self.videoStabilizationMode];
+    }
+    [connection setVideoOrientation:[EXCameraUtils videoOrientationForDeviceOrientation:[[UIDevice currentDevice] orientation]]];
+    
+    [self setVideoOptions:options forConnection:connection onReject:reject];
+    
+    bool canBeMirrored = connection.isVideoMirroringSupported;
+    bool shouldBeMirrored = options[@"mirror"] && [options[@"mirror"] boolValue];
+    if (canBeMirrored && shouldBeMirrored) {
+      [connection setVideoMirrored:shouldBeMirrored];
+    }
+}
+
+-(void)updateSessionWithOptions:(NSDictionary *)options
+{
+  bool shouldBeMuted = options[@"mute"] && [options[@"mute"] boolValue];
+  [self updateSessionAudioIsMuted:shouldBeMuted];
+
+  AVCaptureSessionPreset preset;
+  if (options[@"quality"]) {
+    EXCameraVideoResolution resolution = [options[@"quality"] integerValue];
+    preset = [EXCameraUtils captureSessionPresetForVideoResolution:resolution];
+  } else if ([self.session.sessionPreset isEqual:AVCaptureSessionPresetPhoto]) {
+    preset = AVCaptureSessionPresetHigh;
+  }
+
+  if (preset != nil) {
+    [self updateSessionPreset:preset];
+  }
+}
+
 - (void)record:(NSDictionary *)options resolve:(EXPromiseResolveBlock)resolve reject:(EXPromiseRejectBlock)reject
 {
   if (_movieFileOutput == nil) {
@@ -510,37 +548,18 @@ previewPhotoSampleBuffer:(CMSampleBufferRef)previewPhotoSampleBuffer
     [self setupMovieFileCapture];
   }
 
+    
   if (_movieFileOutput != nil && !_movieFileOutput.isRecording && _videoRecordedResolve == nil && _videoRecordedReject == nil) {
-    bool shouldBeMuted = options[@"mute"] && [options[@"mute"] boolValue];
-    [self updateSessionAudioIsMuted:shouldBeMuted];
-
-    AVCaptureConnection *connection = [_movieFileOutput connectionWithMediaType:AVMediaTypeVideo];
-    // TODO: Add support for videoStabilizationMode (right now it is not only read, never written to)
-    if (connection.isVideoStabilizationSupported == NO) {
-      EXLogWarn(@"%s: Video Stabilization is not supported on this device.", __func__);
-    } else {
-      [connection setPreferredVideoStabilizationMode:self.videoStabilizationMode];
-    }
-    [connection setVideoOrientation:[EXCameraUtils videoOrientationForDeviceOrientation:[[UIDevice currentDevice] orientation]]];
-    
-    AVCaptureSessionPreset preset;
-    if (options[@"quality"]) {
-      EXCameraVideoResolution resolution = [options[@"quality"] integerValue];
-      preset = [EXCameraUtils captureSessionPresetForVideoResolution:resolution];
-    } else if ([self.session.sessionPreset isEqual:AVCaptureSessionPresetPhoto]) {
-      preset = AVCaptureSessionPresetHigh;
-    }
-
-    if (preset != nil) {
-      [self updateSessionPreset:preset];
-    }
-    
-    [self setVideoOptions:options forConnection:connection onReject:reject];
-    
-    bool canBeMirrored = connection.isVideoMirroringSupported;
-    bool shouldBeMirrored = options[@"mirror"] && [options[@"mirror"] boolValue];
-    if (canBeMirrored && shouldBeMirrored) {
-      [connection setVideoMirrored:shouldBeMirrored];
+    // There are some options, which are called within commitConfiguration. These kinds of options need to
+    // be preset as early as possible, however, if we receive a new options - we still configure them.
+    // All these options are configured in `updateSessionWithOptions`.
+    // However, some fields should be configured when starting a video because it depends on `movieFileOutput`.
+    // These options don't cause flickering => we can configure it before starting recording - we do it in `upadteVideoWithOptions`.
+    if (options != nil && options.count >= 1) {
+        [self updateSessionWithOptions:options];
+        [self updateVideoWithOptions:options onReject:reject];
+    } else if (_defaultRecordOptions != nil && _defaultRecordOptions.count >= 1) {
+        [self updateVideoWithOptions:_defaultRecordOptions onReject:reject];
     }
 
     EX_WEAKIFY(self);

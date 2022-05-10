@@ -88,6 +88,7 @@ class ExpoCameraView(
   private var pendingFaceDetectorSettings: Map<String, Any>? = null
   private var shouldDetectFaces = false
   private var mShouldScanBarCodes = false
+  private var defaultRecordOptions: Map<String?, Any?>? = null
 
   override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
     val preview = view ?: return
@@ -149,7 +150,13 @@ class ExpoCameraView(
     emitPictureSavedEvent(eventEmitter, this, response)
   }
 
-  fun record(options: Map<String?, Any?>, promise: Promise, cacheDirectory: File) {
+  fun record(baseOptions: Map<String?, Any?>, promise: Promise, cacheDirectory: File) {
+    val options =  if (baseOptions.isNotEmpty() || defaultRecordOptions == null) {
+      baseOptions
+    } else {
+      defaultRecordOptions
+    }
+
     try {
       val path = FileSystemUtils.generateOutputPath(cacheDirectory, "Camera", ".mp4")
       val maxDuration = options[MAX_DURATION_KEY]?.let { it as Double } ?: -1.0
