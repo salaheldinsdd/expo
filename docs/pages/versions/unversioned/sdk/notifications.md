@@ -527,6 +527,31 @@ A few different listeners are exposed, so we've provided a chart below which wil
 
 > In the chart above, whenever `NotificationResponseReceivedListener` is triggered, the same would apply to the `useLastNotificationResponse` hook.
 
+
+### `topicSubscribeAsync(topic: string): Promise<void>`
+
+Allow to subscribe to Firebase broadcast topics. Exists only on Android. Broadcasts are transmitted as normal messages that have a `request.trigger.from` field set to the broadcast channel.
+
+#### Arguments
+
+A single and required argument is the name of the topic.
+
+#### Returns
+
+Promise is resolved with `undefined` on success or rejected on failure.
+
+#### Examples
+
+Subscribing to a broadcast topic:
+
+```tsx
+import * as Notifications from 'expo-notifications';
+
+const token = (await Notifications.getDevicePushTokenAsync()).data;
+await Notifications.topicSubscribeAsync('weather');
+```
+
+
 ### `useLastNotificationResponse(): undefined | NotificationResponse | null`
 
 A React hook always returning the notification response that was received most recently (a notification response designates an interaction with a notification, such as tapping on it).
