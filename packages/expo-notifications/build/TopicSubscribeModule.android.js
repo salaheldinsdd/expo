@@ -1,4 +1,3 @@
 import { NativeModulesProxy } from 'expo-modules-core';
-console.log(NativeModulesProxy);
-export default NativeModulesProxy.TopicSubscribeModule;
+export default NativeModulesProxy.ExpoTopicSubscribeModule;
 //# sourceMappingURL=TopicSubscribeModule.android.js.map

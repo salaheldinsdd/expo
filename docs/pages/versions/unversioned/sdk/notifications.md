@@ -530,7 +530,7 @@ A few different listeners are exposed, so we've provided a chart below which wil
 
 ### `topicSubscribeAsync(topic: string): Promise<void>`
 
-Allow to subscribe to Firebase broadcast topics. Exists only on Android. Broadcasts are transmitted as normal messages that have a `request.trigger.from` field set to the broadcast channel.
+Allows to subscribe to Firebase broadcast topics. Exists only on Android. Broadcasts are transmitted as normal messages that have a `request.trigger.from` field set to the broadcast channel.
 
 #### Arguments
 
@@ -550,6 +550,18 @@ import * as Notifications from 'expo-notifications';
 const token = (await Notifications.getDevicePushTokenAsync()).data;
 await Notifications.topicSubscribeAsync('weather');
 ```
+
+### `topicUnsubscribeAsync(topic: string): Promise<void>`
+
+Allows to unsubscribe from a Firebase broadcast topic. Exists only on Android.
+
+#### Arguments
+
+A single and required argument is the name of the topic.
+
+#### Returns
+
+Promise is resolved with `undefined` on success or rejected on failure.
 
 
 ### `useLastNotificationResponse(): undefined | NotificationResponse | null`
