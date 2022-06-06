@@ -562,7 +562,6 @@ A single and required argument is the name of the topic.
 
 Promise is resolved with `undefined` on success or rejected on failure.
 
-
 ### `useLastNotificationResponse(): undefined | NotificationResponse | null`
 
 A React hook always returning the notification response that was received most recently (a notification response designates an interaction with a notification, such as tapping on it).
