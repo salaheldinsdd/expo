@@ -527,7 +527,6 @@ A few different listeners are exposed, so we've provided a chart below which wil
 
 > In the chart above, whenever `NotificationResponseReceivedListener` is triggered, the same would apply to the `useLastNotificationResponse` hook.
 
-
 ### `topicSubscribeAsync(topic: string): Promise<void>`
 
 Allows to subscribe to Firebase broadcast topics. Exists only on Android. Broadcasts are transmitted as normal messages that have a `request.trigger.from` field set to the broadcast channel.
