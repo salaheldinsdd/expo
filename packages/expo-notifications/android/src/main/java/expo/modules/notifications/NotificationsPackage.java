@@ -27,6 +27,7 @@ import expo.modules.notifications.notifications.scheduling.NotificationScheduler
 import expo.modules.notifications.permissions.NotificationPermissionsModule;
 import expo.modules.notifications.tokens.PushTokenManager;
 import expo.modules.notifications.tokens.PushTokenModule;
+import expo.modules.notifications.topics.TopicSubscribeModule;
 
 public class NotificationsPackage extends BasePackage {
   @Override
@@ -34,6 +35,7 @@ public class NotificationsPackage extends BasePackage {
     return Arrays.asList(
       new BadgeModule(context),
       new PushTokenModule(context),
+      new TopicSubscribeModule(context),
       new NotificationsEmitter(context),
       new NotificationsHandler(context),
       new NotificationScheduler(context),
