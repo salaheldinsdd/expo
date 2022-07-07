@@ -32,6 +32,10 @@
 #import <React/RCTImageLoader.h>
 #import <React/RCTAsyncLocalStorage.h>
 #import <React/RCTJSIExecutorRuntimeInstaller.h>
+#import <React/RCTFabricSurfaceHostingProxyRootView.h>
+#import <React/RCTSurfacePresenter.h>
+#import <React/RCTSurfacePresenterBridgeAdapter.h>
+#import <react/config/ReactNativeConfig.h>
 
 #import <objc/message.h>
 
@@ -84,13 +88,18 @@ RCT_EXTERN void EXRegisterScopedModule(Class, ...);
 
 @end
 
-@interface EXVersionManager () <RCTTurboModuleManagerDelegate>
+@interface EXVersionManager () <RCTTurboModuleManagerDelegate> {
+  std::shared_ptr<const facebook::react::ReactNativeConfig> _reactNativeConfig;
+  facebook::react::ContextContainer::Shared _contextContainer;
+}
 
 // is this the first time this ABI has been touched at runtime?
 @property (nonatomic, assign) BOOL isFirstLoad;
 @property (nonatomic, strong) NSDictionary *params;
 @property (nonatomic, strong) EXManifestsManifest *manifest;
 @property (nonatomic, strong) RCTTurboModuleManager *turboModuleManager;
+@property (nonatomic, strong) RCTSurfacePresenterBridgeAdapter *bridgeAdapter;
+@property (nonatomic, assign, readonly) BOOL fabricEnabled;
 
 @end
 
@@ -120,6 +129,7 @@ RCT_EXTERN void EXRegisterScopedModule(Class, ...);
     _params = params;
     _manifest = manifest;
     [self configureABIWithFatalHandler:fatalHandler logFunction:logFunction logThreshold:threshold];
+    _fabricEnabled = [self.manifest.experiments[@"fabric"] boolValue];
   }
   return self;
 }
@@ -157,6 +167,32 @@ RCT_EXTERN void EXRegisterScopedModule(Class, ...);
   [redBox setOverrideReloadAction:^{
     [[NSNotificationCenter defaultCenter] postNotificationName:EX_UNVERSIONED(@"EXReloadActiveAppRequest") object:nil];
   }];
+}
+
+- (void)bridgeBindWithFabricIfNeeded:(RCTBridge *)bridge
+{
+  if (_fabricEnabled) {
+    _contextContainer = std::make_shared<facebook::react::ContextContainer const>();
+    _reactNativeConfig = std::make_shared<facebook::react::EmptyReactNativeConfig const>();
+    _contextContainer->insert("ReactNativeConfig", _reactNativeConfig);
+    _bridgeAdapter = [[RCTSurfacePresenterBridgeAdapter alloc] initWithBridge:bridge contextContainer:_contextContainer];
+    bridge.surfacePresenter = _bridgeAdapter.surfacePresenter;
+  }
+}
+
+- (UIView *)createRootViewWithBridge:(RCTBridge *)bridge
+                          moduleName:(NSString *)moduleName
+                   initialProperties:(NSDictionary *)initialProperties
+{
+  if (_fabricEnabled) {
+    return [[RCTFabricSurfaceHostingProxyRootView alloc] initWithBridge:bridge
+                                                           moduleName:moduleName
+                                                    initialProperties:initialProperties];
+  } else {
+    return [[RCTRootView alloc] initWithBridge:bridge
+                                    moduleName:moduleName
+                             initialProperties:initialProperties];
+  }
 }
 
 - (void)invalidate {}
@@ -533,6 +569,13 @@ RCT_EXTERN void EXRegisterScopedModule(Class, ...);
 
 - (void *)versionedJsExecutorFactoryForBridge:(RCTBridge *)bridge
 {
+  if (RCTTurboModuleEnabled()) {
+    _turboModuleManager = [[RCTTurboModuleManager alloc] initWithBridge:bridge
+                                                               delegate:self
+                                                              jsInvoker:bridge.jsCallInvoker];
+    [bridge setRCTTurboModuleRegistry:_turboModuleManager];
+  }
+
   [bridge moduleForClass:[RCTUIManager class]];
   REAUIManager *reaUiManager = [REAUIManager new];
   [reaUiManager setBridge:bridge];
@@ -549,11 +592,18 @@ RCT_EXTERN void EXRegisterScopedModule(Class, ...);
   [eventDispatcher initialize];
   [bridge updateModuleWithInstance:eventDispatcher];
 
+  RCTTurboModuleManager *turboModuleManager = _turboModuleManager;
   EX_WEAKIFY(self);
-  const auto executor = [EXWeak_self, bridge](facebook::jsi::Runtime &runtime) {
+  const auto executor = [EXWeak_self, bridge, turboModuleManager](facebook::jsi::Runtime &runtime) {
     if (!bridge) {
       return;
     }
+    if (turboModuleManager) {
+      facebook::react::RuntimeExecutor syncRuntimeExecutor =
+          [&](std::function<void(facebook::jsi::Runtime & runtime_)> &&callback) { callback(runtime); };
+      [turboModuleManager installJSBindingWithRuntimeExecutor:syncRuntimeExecutor];
+    }
+
     EX_ENSURE_STRONGIFY(self);
     auto reanimatedModule = reanimated::createReanimatedModule(bridge, bridge.jsCallInvoker);
     auto workletRuntimeValue = runtime
