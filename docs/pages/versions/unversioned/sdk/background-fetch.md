@@ -51,7 +51,7 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
 // Note: This does NOT need to be in the global scope and CAN be used in your React components!
 async function registerBackgroundFetchAsync() {
   return BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-    minimumInterval: 60 * 15, // 15 minutes
+    minimumInterval: 60 * 15, // 60 seconds * 15 = 15 minutes
     stopOnTerminate: false, // android only,
     startOnBoot: true, // android only
   });
@@ -154,7 +154,7 @@ For Android, you can set the `minimumInterval` option of your task to a small nu
 ```tsx
 async function registerBackgroundFetchAsync() {
   return BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-    minimumInterval: 1, // task will fire 1 minute after app is backgrounded
+    minimumInterval: 1, // even though the values here refers to seconds, this task will fire 1 minute after app is backgrounded
   });
 }
 ```
