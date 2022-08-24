@@ -4,7 +4,21 @@
 
 ### 🛠 Breaking changes
 
+- [plugin] Upgrade minimum runtime requirement to Node 14 (LTS). ([#18204](https://github.com/expo/expo/pull/18204) by [@EvanBacon](https://github.com/EvanBacon))
+
 ### 🎉 New features
+
+### 🐛 Bug fixes
+
+### 💡 Others
+
+- Drop `@expo/config-plugins` dependency in favor of peer dependency on `expo`. ([#18595](https://github.com/expo/expo/pull/18595) by [@EvanBacon](https://github.com/EvanBacon))
+
+## 1.3.0 — 2022-07-07
+
+_This version does not introduce any user-facing changes._
+
+## 1.2.0 — 2022-04-18
 
 ### 🐛 Bug fixes
 
@@ -13,6 +27,10 @@
 ### 💡 Others
 
 - Updated `@expo/config-plugins` from `4.0.2` to `4.0.14` ([#15621](https://github.com/expo/expo/pull/15621) by [@EvanBacon](https://github.com/EvanBacon))
+
+### ⚠️ Notices
+
+- On Android bump `compileSdkVersion` to `31`, `targetSdkVersion` to `31` and `Java` version to `11`. ([#16941](https://github.com/expo/expo/pull/16941) by [@bbarthec](https://github.com/bbarthec))
 
 ## 1.1.2 - 2022-02-01
 

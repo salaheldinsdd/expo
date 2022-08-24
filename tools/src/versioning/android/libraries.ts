@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
+
 import { getExpotoolsDir } from '../../Directories';
 
 export const JniLibNames = [
@@ -27,6 +28,7 @@ export const JniLibNames = [
   'reactnativeblob',
   'jsijniprofiler',
   'hermes',
+  'hermes-executor-common',
   'hermes-executor-release',
   'hermes-executor-common-release',
   'hermes-executor-debug',
@@ -34,11 +36,12 @@ export const JniLibNames = [
   'reanimated',
   'hermes-inspector',
   'folly_futures',
+  'folly_runtime',
   'react_codegen_rncore',
   'react_nativemodule_core',
   'reactnativeutilsjni',
   'reactperfloggerjni',
-  'better',
+  'butter',
   'jsi',
   'logger',
   'mapbufferjni',
@@ -60,7 +63,7 @@ export const JniLibNames = [
   'react_render_textlayoutmanager',
   'react_render_uimanager',
   'react_utils',
-  'reactconfig',
+  'react_config',
   'rrc_image',
   'rrc_modal',
   'rrc_progressbar',
@@ -72,6 +75,7 @@ export const JniLibNames = [
   'rrc_textinput',
   'rrc_unimplementedview',
   'rrc_view',
+  'runtimeexecutor',
 
   // TODO: considering versioning prebuilt fbjni by patchelf after RN 0.65 which has newer fbjni version.
   // or simply upgrade old SDK to use latest fbjni.

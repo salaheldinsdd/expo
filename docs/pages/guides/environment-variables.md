@@ -11,7 +11,7 @@ Because they are defined globally, these variables are useful to change the beha
 
 ### Using app manifest `.extra`
 
-In the app manifest, there is also a `.extra` property. Unlike `.env`, this property is included when you publish your project with `expo publish` or `expo build`. The contents of the `.extra` property are taken from your app manifest. By default, this does not add any environment variables, but we can make that happen with the [dynamic app manifest configuration](../workflow/configuration.md#app-config).
+In the app manifest, there is also a `.extra` property. Unlike `.env`, this property is included when you publish your project with `eas update` or `expo build`. The contents of the `.extra` property are taken from your app manifest. By default, this does not add any environment variables, but we can make that happen with the [dynamic app manifest configuration](../workflow/configuration.md#app-config).
 
 Below you can see an example of the dynamic **app.config.js** manifest. It's similar to the **app.json**, but written in JavaScript instead of JSON. The manifest is loaded when starting or publishing your app and has access to the environment variables using [`process.env`](https://nodejs.org/dist/latest/docs/api/process.html#process_process_env). With this we can configure the `.extra.enableComments` property without having to change the code itself, like `COOLAPP_COMMENTS=true expo start`.
 
@@ -48,7 +48,7 @@ Post.defaultProps = {
 
 In the bare workflow, you don't have access to the manifest via the [`expo-constants`](../versions/latest/sdk/constants.md) module. You can still use environment variables using another method, a Babel plugin. This approach replaces all references to `process.env.VARNAME` with the variable contents, and works in both Bare and Managed Workflows.
 
-To set this up, we need to install the [`babel-plugin-transform-inline-environment-variables`](https://github.com/babel/website/blob/master/docs/plugin-transform-inline-environment-variables.md) plugin. After adding this to your dev dependencies, we need to tell Babel to use this plugin. Below you can see a modifed **babel.config.js** with this plugin enabled.
+To set this up, we need to install the [`babel-plugin-transform-inline-environment-variables`](https://github.com/babel/website/blob/master/docs/plugin-transform-inline-environment-variables.md) plugin. After adding this to your dev dependencies, we need to tell Babel to use this plugin. Below you can see a modified **babel.config.js** with this plugin enabled.
 
 ```js
 module.exports = function (api) {

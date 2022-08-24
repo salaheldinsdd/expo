@@ -42,7 +42,7 @@ export function podspecTransforms(versionName: string): TransformPipeline {
         // Hide Hermes headers from public headers because clang modoules does not support c++
         // Learn more: `packages/expo-modules-autolinking/scripts/ios/cocoapods/sandbox.rb`
         paths: 'React-Core.podspec',
-        replace: /(s.subspec\s+"Hermes".*$)/mg,
+        replace: /(s.subspec\s+"Hermes".*$)/gm,
         with: '$1\n    ss.private_header_files = "ReactCommon/hermes/executor/*.h", "ReactCommon/hermes/inspector/*.h", "ReactCommon/hermes/inspector/chrome/*.h", "ReactCommon/hermes/inspector/detail/*.h"',
       },
       {
@@ -55,8 +55,15 @@ export function podspecTransforms(versionName: string): TransformPipeline {
       {
         // Fixes HEADER_SEARCH_PATHS
         paths: ['React-Core.podspec', 'ReactCommon.podspec'],
-        replace: /(Headers\/Private\/)(React-Core)/g,
-        with: `$1${versionName}$2`,
+        replace: /(Headers\/Private\/|_BUILD_DIR\)\/)(React-)(Core|bridging)/g,
+        with: `$1${versionName}$2$3`,
+      },
+
+      // React-bridging
+      {
+        paths: 'React-bridging.podspec',
+        replace: /\bheader_mappings_dir\s*=\s*"."/,
+        with: 'header_mappings_dir    = "react/bridging"',
       },
 
       // React-cxxreact
@@ -77,15 +84,9 @@ export function podspecTransforms(versionName: string): TransformPipeline {
 
       // FBReactNativeSpec
       {
-        // source_files from versioned code
-        paths: 'FBReactNativeSpec.podspec',
-        replace: /(s\.source_files\s+=\s+"\*\*\/)(FBReactNativeSpec\*)/g,
-        with: `$1${versionName}$2`,
-      },
-      {
         // Remove codegen from build phase script
         paths: 'FBReactNativeSpec.podspec',
-        replace: /\n  use_react_native_codegen!\((.|\n)+?\n  }\)\n/mg,
+        replace: /\n  use_react_native_codegen!\((.|\n)+?\n  }\)\n/gm,
         with: '',
       },
     ],

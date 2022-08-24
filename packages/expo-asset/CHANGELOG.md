@@ -10,6 +10,18 @@
 
 ### 💡 Others
 
+## 8.6.1 — 2022-07-19
+
+_This version does not introduce any user-facing changes._
+
+## 8.6.0 — 2022-07-07
+
+_This version does not introduce any user-facing changes._
+
+## 8.5.0 — 2022-04-18
+
+### 💡 Others
+
 - Swap out Cloudfront CDN for `classic-assets.eascdn.net`. ([#15781](https://github.com/expo/expo/pull/15781)) by [@quinlanj](https://github.com/quinlanj)
 
 ## 8.4.6 - 2022-01-13

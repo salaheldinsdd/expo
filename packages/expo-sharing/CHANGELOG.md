@@ -10,6 +10,18 @@
 
 ### 💡 Others
 
+## 10.3.0 — 2022-07-07
+
+### 🛠 Breaking changes
+
+- Changed the return type of the `shareAsync` function. The promise now resolves to `void` instead of an empty object. ([#18019](https://github.com/expo/expo/pull/18019) by [@barthap](https://github.com/barthap))
+
+## 10.2.0 — 2022-04-18
+
+### ⚠️ Notices
+
+- On Android bump `compileSdkVersion` to `31`, `targetSdkVersion` to `31` and `Java` version to `11`. ([#16941](https://github.com/expo/expo/pull/16941) by [@bbarthec](https://github.com/bbarthec))
+
 ## 10.1.1 - 2022-02-01
 
 ### 🐛 Bug fixes

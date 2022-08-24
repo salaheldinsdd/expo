@@ -2,15 +2,17 @@
 title: Testing with Jest
 ---
 
-This guide explains how to set up Jest in your project, write a unit test, write a snapshot test, and common problems people encounter when using **Jest** in React Native.
+import { Terminal } from '~/ui/components/Snippet';
 
-[Jest](https://jestjs.io) is the most widely used JavaScript unit testing framework, so you may already be familiar with it.
+[Jest](https://jestjs.io) is the most widely used JavaScript unit testing framework. This guide explains how to set up Jest in your project, write a unit test, write a snapshot test, and common problems people encounter when using Jest in React Native.
 
 ## Installation
 
-The first thing we'll want to do is to install `jest-expo`, it's a Jest preset that mocks out the native side of the Expo SDK and handles most of configurations for you.
+To get started, you'll need to install `jest-expo`. It's a Jest preset that mocks out the native side of the Expo SDK and handles most of the configurations for you.
 
-To install the compatible version of `jest-expo` for your project, run: `expo install jest-expo jest`
+To install a compatible version of `jest-expo` for your project, run:
+
+<Terminal cmd={[ '$ expo install jest-expo jest' ]} />
 
 Then, we need to add/update **package.json** to include:
 
@@ -26,7 +28,12 @@ Then, we need to add/update **package.json** to include:
 
 Now let's add `react-test-renderer` to our project. Pick a version that is compatible with the React version used by your project. For example, if you use React 17.x then you should install `react-test-renderer@17`:
 
-`yarn add react-test-renderer@17 --dev` **or** `npm i react-test-renderer@17 --save-dev`
+<Terminal cmd={[
+'# Using yarn',
+'$ yarn add react-test-renderer@17 --dev',
+'# Using npm',
+'$ npm i react-test-renderer@17 --save-dev'
+]}/>
 
 That's it! Now we can start writing Jest tests!
 
@@ -49,7 +56,7 @@ We would like to point out [`transformIgnorePatterns`](https://jestjs.io/docs/co
 
 ## Unit Test
 
-We are going to write a simple test for **App.js** by creating it's own test file: **App.test.js**. Jest will identify this as a test and include it in the tests queue. There are other ways to [structure your tests](#structure-your-tests), but we will cover that later in this guide.
+We are going to write a simple test for **App.js** by creating its own test file: **App.test.js**. Jest will identify this as a test and include it in the tests queue. There are other ways to [structure your tests](#structure-your-tests), but we will cover that later in this guide.
 
 Our test will be the expected state of the `<App />` to have one child element:
 

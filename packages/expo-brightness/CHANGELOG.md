@@ -10,7 +10,25 @@
 
 ### 💡 Others
 
+- Drop `@expo/config-plugins` dependency in favor of peer dependency on `expo`. ([#18595](https://github.com/expo/expo/pull/18595) by [@EvanBacon](https://github.com/EvanBacon))
+
+## 10.3.0 — 2022-07-07
+
+_This version does not introduce any user-facing changes._
+
+## 10.2.0 — 2022-04-18
+
+### 🎉 New features
+
+- Added `addBrightnessListener` to subscribe to brightness updates. Currently iOS only. ([#16851](https://github.com/expo/expo/pull/16851) by [@luoxuhai](https://github.com/luoxuhai))
+
+### 💡 Others
+
 - Updated `@expo/config-plugins` from `4.0.2` to `4.0.14` ([#15621](https://github.com/expo/expo/pull/15621) by [@EvanBacon](https://github.com/EvanBacon))
+
+### ⚠️ Notices
+
+- On Android bump `compileSdkVersion` to `31`, `targetSdkVersion` to `31` and `Java` version to `11`. ([#16941](https://github.com/expo/expo/pull/16941) by [@bbarthec](https://github.com/bbarthec))
 
 ## 10.1.1 - 2022-02-01
 

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ImageProps, ViewProps } from 'react-native';
+import { ImageProps, ViewProps, StyleProp, ViewStyle } from 'react-native';
 
 import {
   AVPlaybackNativeSource,
@@ -47,7 +47,7 @@ export type VideoReadyForDisplayEvent = {
    */
   naturalSize: VideoNaturalSize;
   /**
-   * The `AVPlaybackStatus` of the video. See the [AV documentation](../av/#playback-status) for further information.
+   * The `AVPlaybackStatus` of the video. See the [AV documentation](./av/#playback-status) for further information.
    */
   status?: AVPlaybackStatus;
 };
@@ -79,7 +79,7 @@ export type VideoFullscreenUpdateEvent = {
    */
   fullscreenUpdate: VideoFullscreenUpdate;
   /**
-   * The `AVPlaybackStatus` of the video. See the [AV documentation](../av) for further information.
+   * The `AVPlaybackStatus` of the video. See the [AV documentation](./av) for further information.
    */
   status?: AVPlaybackStatus;
 };
@@ -93,24 +93,14 @@ export type VideoFullscreenUpdateEvent = {
  * - The `onLoadStart`, `onLoad`, and `onError` props are also provided for backwards compatibility with `Image`
  *   (but they are redundant with `onPlaybackStatusUpdate`).
  * Finally, the rest of props are available to control the playback of the video, but we recommend that, for finer control, you use the methods
- * available on the `ref` described in the [AV documentation](../av).
+ * available on the `ref` described in the [AV documentation](./av).
  */
 export type VideoProps = {
   // Source stuff
 
   /**
    * The source of the video data to display. If this prop is `null`, or left blank, the video component will display nothing.
-   * Note that this can also be set on the `ref` via `loadAsync()`. See below or the [AV documentation](../av) for further information.
-   *
-   * The following forms for the source are supported:
-   * - A dictionary of the form `{ uri: string, headers?: { [string]: string }, overrideFileExtensionAndroid?: string }` with a network URL
-   *   pointing to a video file on the web, an optional headers object passed in a network request to the `uri` and an optional
-   *   Android-specific `overrideFileExtensionAndroid` string overriding extension inferred from the URL.
-   *   The `overrideFileExtensionAndroid` property may come in handy if the player receives an URL like `example.com/play` which redirects
-   *   to `example.com/player.m3u8`. Setting this property to `m3u8` would allow the Android player to properly infer the content type
-   *   of the media and use proper media file reader.
-   * - `require('path/to/file')` for a video file asset in the source code directory.
-   * - An [`Asset`](asset) object for a video file asset.
+   * Note that this can also be set on the `ref` via `loadAsync()`. See the [AV documentation](./av) for further information.
    *
    * @see
    * - The [Android developer documentation](https://developer.android.com/guide/topics/media/media-formats#video-formats)
@@ -129,6 +119,10 @@ export type VideoProps = {
    * An optional property to pass custom styles to the poster image.
    */
   posterStyle?: ImageProps['style'];
+  /**
+   * An optional property to pass custom styles to the internal video component.
+   */
+  videoStyle?: StyleProp<ViewStyle>;
 
   // Callbacks
   /**
@@ -143,7 +137,7 @@ export type VideoProps = {
   onLoadStart?: () => void;
   /**
    * A function to be called once the video has been loaded. The data is streamed so all of it may not have been fetched yet, just enough to render the first frame.
-   * The function is called with the `AVPlaybackStatus` of the video as its parameter. See the [AV documentation](../av) for further information.
+   * The function is called with the `AVPlaybackStatus` of the video as its parameter. See the [AV documentation](./av) for further information.
    * @param status
    */
   onLoad?: (status: AVPlaybackStatus) => void;
@@ -185,49 +179,54 @@ export type VideoProps = {
   // Playback API
   /**
    * A dictionary setting a new `AVPlaybackStatusToSet` on the video.
-   * See the [AV documentation](../av#default-initial--avplaybackstatustoset) for more information on `AVPlaybackStatusToSet`.
+   * See the [AV documentation](./av#default-initial--avplaybackstatustoset) for more information on `AVPlaybackStatusToSet`.
    */
   status?: AVPlaybackStatusToSet;
   /**
    * A number describing the new minimum interval in milliseconds between calls of `onPlaybackStatusUpdate`.
-   * See the [AV documentation](../av) for more information.
+   * See the [AV documentation](./av) for more information.
    */
   progressUpdateIntervalMillis?: number;
   /**
    * The desired position of playback in milliseconds.
-   * See the [AV documentation](../av) for more information.
+   * See the [AV documentation](./av) for more information.
    */
   positionMillis?: number;
   /**
    * A boolean describing if the media is supposed to play. Playback may not start immediately after setting this value for reasons such as buffering.
    * Make sure to update your UI based on the `isPlaying` and `isBuffering` properties of the `AVPlaybackStatus`.
-   * See the [AV documentation](../av) for more information.
+   * See the [AV documentation](./av) for more information.
    */
   shouldPlay?: boolean;
   /**
    * The desired playback rate of the media. This value must be between `0.0` and `32.0`. Only available on Android API version 23 and later and iOS.
-   * See the [AV documentation](../av) for more information.
+   * See the [AV documentation](./av) for more information.
    */
   rate?: number;
   /**
    * A boolean describing if we should correct the pitch for a changed rate. If set to `true`, the pitch of the audio will be corrected
    * (so a rate different than `1.0` will timestretch the audio).
-   * See the [AV documentation](../av) for more information.
+   * See the [AV documentation](./av) for more information.
    */
   shouldCorrectPitch?: boolean;
   /**
    * The desired volume of the audio for this media. This value must be between `0.0` (silence) and `1.0` (maximum volume).
-   * See the [AV documentation](../av) for more information.
+   * See the [AV documentation](./av) for more information.
    */
   volume?: number;
   /**
    * A boolean describing if the audio of this media should be muted.
-   * See the [AV documentation](../av) for more information.
+   * See the [AV documentation](./av) for more information.
    */
   isMuted?: boolean;
   /**
+   * The desired audio panning value of the audio for this media. This value must be between `-1.0` (full left) and `1.0` (full right).
+   * See the [AV documentation](./av) for more information.
+   */
+  audioPan?: number;
+  /**
    * A boolean describing if the media should play once (`false`) or loop indefinitely (`true`).
-   * See the [AV documentation](../av) for more information.
+   * See the [AV documentation](./av) for more information.
    */
   isLooping?: boolean;
 
@@ -268,6 +267,7 @@ export type VideoNativeProps = {
   onReadyForDisplay?: (event: { nativeEvent: VideoReadyForDisplayEvent }) => void;
   onFullscreenUpdate?: (event: { nativeEvent: VideoFullscreenUpdateEvent }) => void;
   useNativeControls?: boolean;
+  videoStyle?: StyleProp<ViewStyle>;
 } & ViewProps;
 
 // @docsMissing

@@ -1,4 +1,4 @@
-import { PermissionResponse as UMPermissionResponse } from 'expo-modules-core';
+import { PermissionResponse } from 'expo-modules-core';
 /**
  * Enum with available location accuracies.
  */
@@ -99,14 +99,16 @@ export declare type LocationOptions = {
      */
     accuracy?: LocationAccuracy;
     /**
-     * (Android only) Specifies whether to ask the user to turn on improved accuracy location mode
+     * Specifies whether to ask the user to turn on improved accuracy location mode
      * which uses Wi-Fi, cell networks and GPS sensor.
-     * @default true.
+     * @default true
+     * @platform android
      */
     mayShowUserSettingsDialog?: boolean;
     /**
-     * (Android only) Minimum time to wait between each update in milliseconds.
+     * Minimum time to wait between each update in milliseconds.
      * Default value may depend on `accuracy` option.
+     * @platform android
      */
     timeInterval?: number;
     /**
@@ -239,6 +241,11 @@ export declare type LocationObject = {
      * The time at which this position information was obtained, in milliseconds since epoch.
      */
     timestamp: number;
+    /**
+     * Whether the location coordinates is mocked or not.
+     * @platform android
+     */
+    mocked?: boolean;
 };
 /**
  * Type representing the location GPS related data.
@@ -431,7 +438,7 @@ export declare type PermissionDetailsLocationIOS = {
 };
 export declare type PermissionDetailsLocationAndroid = {
     /**
-     * @deprecated __Deprecated.__ Use `accuracy` field instead.
+     * @deprecated Use `accuracy` field instead.
      */
     scope: 'fine' | 'coarse' | 'none';
     /**
@@ -440,11 +447,12 @@ export declare type PermissionDetailsLocationAndroid = {
     accuracy: 'fine' | 'coarse' | 'none';
 };
 /**
- * `LocationPermissionResponse` extends [PermissionResponse](permissions.md#permissionresponse)
+ * `LocationPermissionResponse` extends [PermissionResponse](#permissionresponse)
  * type exported by `expo-modules-core` and contains additional platform-specific fields.
  */
-export interface LocationPermissionResponse extends UMPermissionResponse {
+export declare type LocationPermissionResponse = PermissionResponse & {
     ios?: PermissionDetailsLocationIOS;
     android?: PermissionDetailsLocationAndroid;
-}
+};
+export { PermissionResponse };
 //# sourceMappingURL=Location.types.d.ts.map

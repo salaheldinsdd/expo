@@ -13,7 +13,6 @@ import com.facebook.react.ReactRootView
 import com.facebook.soloader.SoLoader
 import com.squareup.leakcanary.LeakCanary
 import de.greenrobot.event.EventBus
-import expo.modules.analytics.amplitude.AmplitudePackage
 import expo.modules.barcodescanner.BarCodeScannerPackage
 import expo.modules.camera.CameraPackage
 import expo.modules.constants.ConstantsPackage
@@ -22,6 +21,7 @@ import expo.modules.device.DevicePackage
 import expo.modules.facedetector.FaceDetectorPackage
 import expo.modules.filesystem.FileSystemPackage
 import expo.modules.font.FontLoaderPackage
+import expo.modules.haptics.HapticsPackage
 import expo.modules.keepawake.KeepAwakePackage
 import expo.modules.medialibrary.MediaLibraryPackage
 import expo.modules.notifications.NotificationsPackage
@@ -30,7 +30,6 @@ import expo.modules.splashscreen.SplashScreenImageResizeMode
 import expo.modules.splashscreen.SplashScreenPackage
 import expo.modules.splashscreen.singletons.SplashScreen
 import expo.modules.taskManager.TaskManagerPackage
-import expo.modules.webbrowser.WebBrowserPackage
 import host.exp.exponent.Constants
 import host.exp.exponent.ExponentManifest
 import host.exp.exponent.RNObject
@@ -149,7 +148,6 @@ open class HomeActivity : BaseExperienceActivity() {
         FontLoaderPackage(),
         BarCodeScannerPackage(),
         KeepAwakePackage(),
-        AmplitudePackage(),
         CameraPackage(),
         FaceDetectorPackage(),
         MediaLibraryPackage(),
@@ -157,7 +155,7 @@ open class HomeActivity : BaseExperienceActivity() {
         TaskManagerPackage(), // load expo-task-manager to restore tasks once the client is opened
         DevicePackage(),
         SplashScreenPackage(),
-        WebBrowserPackage()
+        HapticsPackage()
       )
     }
   }

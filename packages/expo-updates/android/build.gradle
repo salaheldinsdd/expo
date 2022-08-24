@@ -4,7 +4,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'maven-publish'
 
 group = 'host.exp.exponent'
-version = '0.11.2'
+version = '0.14.3'
 
 apply from: "../scripts/create-manifest-android.gradle"
 
@@ -62,22 +62,22 @@ afterEvaluate {
 }
 
 android {
-  compileSdkVersion safeExtGet("compileSdkVersion", 30)
+  compileSdkVersion safeExtGet("compileSdkVersion", 31)
 
   compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
+    sourceCompatibility JavaVersion.VERSION_11
+    targetCompatibility JavaVersion.VERSION_11
   }
 
   kotlinOptions {
-    jvmTarget = JavaVersion.VERSION_1_8
+    jvmTarget = JavaVersion.VERSION_11.majorVersion
   }
 
   defaultConfig {
     minSdkVersion safeExtGet("minSdkVersion", 21)
-    targetSdkVersion safeExtGet("targetSdkVersion", 30)
+    targetSdkVersion safeExtGet("targetSdkVersion", 31)
     versionCode 31
-    versionName '0.11.2'
+    versionName '0.14.3'
     consumerProguardFiles("proguard-rules.pro")
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     // uncomment below to export the database schema when making changes
@@ -107,17 +107,14 @@ dependencies {
   implementation project(':expo-updates-interface')
   implementation project(':expo-manifests')
   implementation project(':expo-json-utils')
+  implementation project(':expo-eas-client')
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"
 
-  def room_version = "2.3.0"
+  def room_version = "2.4.2"
 
   implementation "androidx.room:room-runtime:$room_version"
   kapt "androidx.room:room-compiler:$room_version"
-
-  // force upgrade sqlite-jdbc to support building on aarch64 jdk of macos m1.
-  // https://issuetracker.google.com/issues/174695268
-  kapt "org.xerial:sqlite-jdbc:3.36.0"
 
   implementation("com.squareup.okhttp3:okhttp:4.9.2")
   implementation("com.squareup.okhttp3:okhttp-urlconnection:4.9.2")
@@ -126,16 +123,19 @@ dependencies {
   implementation("commons-io:commons-io:2.6")
   implementation("commons-fileupload:commons-fileupload:1.4")
   implementation("org.apache.commons:commons-lang3:3.9")
+  implementation("org.bouncycastle:bcutil-jdk15to18:1.70")
 
   testImplementation 'junit:junit:4.13.1'
   testImplementation 'androidx.test:core:1.4.0'
-  testImplementation 'io.mockk:mockk:1.12.0'
+  testImplementation 'io.mockk:mockk:1.12.3'
+  testImplementation "org.jetbrains.kotlin:kotlin-test-junit:${getKotlinVersion()}"
 
   androidTestImplementation 'androidx.test:runner:1.4.0'
   androidTestImplementation 'androidx.test:core:1.4.0'
   androidTestImplementation 'androidx.test:rules:1.4.0'
-  androidTestImplementation 'io.mockk:mockk-android:1.12.0'
+  androidTestImplementation 'io.mockk:mockk-android:1.12.3'
   androidTestImplementation "androidx.room:room-testing:$room_version"
+  androidTestImplementation "org.jetbrains.kotlin:kotlin-test-junit:${getKotlinVersion()}"
 
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${getKotlinVersion()}"
   implementation "org.jetbrains.kotlin:kotlin-reflect:${getKotlinVersion()}"

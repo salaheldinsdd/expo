@@ -30,6 +30,7 @@ import expo.modules.updates.loader.LoaderTask
 import expo.modules.updates.loader.LoaderTask.BackgroundUpdateStatus
 import expo.modules.updates.loader.LoaderTask.LoaderTaskCallback
 import expo.modules.updates.loader.RemoteLoader
+import expo.modules.updates.logging.UpdatesLogReader
 import expo.modules.updates.manifest.UpdateManifest
 import expo.modules.updates.selectionpolicy.SelectionPolicy
 import expo.modules.updates.selectionpolicy.SelectionPolicyFactory
@@ -59,6 +60,14 @@ class UpdatesController private constructor(
     if (!::databaseHandler.isInitialized) {
       databaseHandlerThread.start()
       databaseHandler = Handler(databaseHandlerThread.looper)
+    }
+  }
+
+  private fun purgeUpdatesLogsOlderThanOneDay(context: Context) {
+    UpdatesLogReader(context).purgeLogEntries {
+      if (it != null) {
+        Log.e(TAG, "UpdatesLogReader: error in purgeLogEntries", it)
+      }
     }
   }
 
@@ -214,6 +223,8 @@ class UpdatesController private constructor(
       return
     }
 
+    purgeUpdatesLogsOlderThanOneDay(context)
+
     initializeDatabaseHandler()
     initializeErrorRecovery(context)
 
@@ -307,7 +318,7 @@ class UpdatesController private constructor(
         }
         remoteLoadStatus = ErrorRecoveryDelegate.RemoteLoadStatus.NEW_UPDATE_LOADING
         val database = getDatabase()
-        val remoteLoader = RemoteLoader(context, updatesConfiguration, database, fileDownloader, updatesDirectory)
+        val remoteLoader = RemoteLoader(context, updatesConfiguration, database, fileDownloader, updatesDirectory, launchedUpdate)
         remoteLoader.start(object : Loader.LoaderCallback {
           override fun onFailure(e: Exception) {
             setRemoteLoadStatus(ErrorRecoveryDelegate.RemoteLoadStatus.IDLE)

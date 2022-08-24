@@ -1,16 +1,26 @@
 // Copyright 2018-present 650 Industries. All rights reserved.
 
 import ExpoModulesCore
+import EXDevMenu
 import EXUpdatesInterface
 
+@objc
 public class ExpoDevLauncherReactDelegateHandler: ExpoReactDelegateHandler, RCTBridgeDelegate, EXDevLauncherControllerDelegate {
+  @objc
+  public static var enableAutoSetup: Bool = true
+
   private weak var reactDelegate: ExpoReactDelegate?
   private var bridgeDelegate: RCTBridgeDelegate?
   private var launchOptions: [AnyHashable : Any]?
   private var deferredRootView: EXDevLauncherDeferredRCTRootView?
   private var rootViewModuleName: String?
   private var rootViewInitialProperties: [AnyHashable : Any]?
-  public static var shouldEnableAutoSetup: Bool = {
+  static var shouldEnableAutoSetup: Bool = {
+    // if someone else has set this explicitly, use that value
+    if !enableAutoSetup {
+      return false
+    }
+
     if !EXAppDefines.APP_DEBUG {
       return false
     }
@@ -28,6 +38,9 @@ public class ExpoDevLauncherReactDelegateHandler: ExpoReactDelegateHandler, RCTB
     if !ExpoDevLauncherReactDelegateHandler.shouldEnableAutoSetup {
       return nil
     }
+
+    // DevLauncherController will handle dev menu configuration, so dev menu auto-setup is not needed
+    ExpoDevMenuReactDelegateHandler.enableAutoSetup = false
 
     self.reactDelegate = reactDelegate
     self.bridgeDelegate = EXRCTBridgeDelegateInterceptor(bridgeDelegate: bridgeDelegate, interceptor: self)
@@ -60,14 +73,30 @@ public class ExpoDevLauncherReactDelegateHandler: ExpoReactDelegateHandler, RCTB
   // MARK: EXDevelopmentClientControllerDelegate implementations
 
   public func devLauncherController(_ developmentClientController: EXDevLauncherController, didStartWithSuccess success: Bool) {
-    let bridge = RCTBridge(delegate: self.bridgeDelegate, launchOptions: self.launchOptions)
+    var launchOptions: [AnyHashable: Any] = [:]
+
+    if let initialLaunchOptions = self.launchOptions {
+      for (key, value) in initialLaunchOptions {
+        launchOptions[key] = value
+      }
+    }
+
+    for (key, value) in developmentClientController.getLaunchOptions() {
+      launchOptions[key] = value
+    }
+
+    let bridge = RCTBridge(delegate: self.bridgeDelegate, launchOptions: launchOptions)
     developmentClientController.appBridge = bridge
 
     let rootView = RCTRootView(bridge: bridge!, moduleName: self.rootViewModuleName!, initialProperties: self.rootViewInitialProperties)
     rootView.backgroundColor = self.deferredRootView?.backgroundColor ?? UIColor.white
     let window = getWindow()
-    window.rootViewController = self.reactDelegate?.createRootViewController()
-    window.rootViewController!.view = rootView
+
+    // NOTE: this order of assignment seems to actually have an effect on behaviour
+    // direct assignment of window.rootViewController.view = rootView does not work
+    let rootViewController = self.reactDelegate?.createRootViewController()
+    rootViewController!.view = rootView
+    window.rootViewController = rootViewController
     window.makeKeyAndVisible()
 
     // it is purposeful that we don't clean up saved properties here, because we may initialize

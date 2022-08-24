@@ -1,5 +1,4 @@
 import { css } from '@emotion/react';
-import { SerializedStyles } from '@emotion/serialize';
 import { theme, typography } from '@expo/styleguide';
 import { Language, Prism } from 'prism-react-renderer';
 import * as React from 'react';
@@ -19,17 +18,17 @@ const STYLES_CODE_BLOCK = css`
   font-size: 13px;
   line-height: 20px;
   white-space: inherit;
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 
   .code-annotation {
     transition: 200ms ease all;
     transition-property: text-shadow, opacity;
-    text-shadow: ${theme.highlight.emphasis} 0px 0px 10px, ${theme.highlight.emphasis} 0px 0px 10px,
-      ${theme.highlight.emphasis} 0px 0px 10px, ${theme.highlight.emphasis} 0px 0px 10px;
+    text-shadow: ${theme.highlight.emphasis} 0 0 10px, ${theme.highlight.emphasis} 0 0 10px,
+      ${theme.highlight.emphasis} 0 0 10px, ${theme.highlight.emphasis} 0 0 10px;
   }
 
-  .code-annotation:hover {
+  .code-annotation.with-tooltip:hover {
     cursor: pointer;
     animation: none;
     opacity: 0.8;
@@ -83,7 +82,7 @@ type Props = {
   className?: string;
 };
 
-export class Code extends React.Component<Props> {
+export class Code extends React.Component<React.PropsWithChildren<Props>> {
   componentDidMount() {
     this.runTippy();
   }
@@ -93,7 +92,7 @@ export class Code extends React.Component<Props> {
   }
 
   private runTippy() {
-    tippy('.code-annotation', {
+    tippy('.code-annotation.with-tooltip', {
       allowHTML: true,
       theme: 'expo',
       placement: 'top',
@@ -113,7 +112,11 @@ export class Code extends React.Component<Props> {
       .replace(
         /<span class="token comment">&lt;!-- @info (.*?)--><\/span>\s*/g,
         (match, content) => {
-          return `<span class="code-annotation" data-tippy-content="${this.escapeHtml(content)}">`;
+          return content
+            ? `<span class="code-annotation with-tooltip" data-tippy-content="${this.escapeHtml(
+                content
+              )}">`
+            : '<span class="code-annotation">';
         }
       )
       .replace(
@@ -130,7 +133,11 @@ export class Code extends React.Component<Props> {
   private replaceHashCommentsWithAnnotations(value: string) {
     return value
       .replace(/<span class="token comment"># @info (.*?)#<\/span>\s*/g, (match, content) => {
-        return `<span class="code-annotation" data-tippy-content="${this.escapeHtml(content)}">`;
+        return content
+          ? `<span class="code-annotation with-tooltip" data-tippy-content="${this.escapeHtml(
+              content
+            )}">`
+          : '<span class="code-annotation">';
       })
       .replace(/<span class="token comment"># @hide (.*?)#<\/span>\s*/g, (match, content) => {
         return `<span><span class="code-hidden">%%placeholder-start%%</span><span class="code-placeholder">${this.escapeHtml(
@@ -143,7 +150,11 @@ export class Code extends React.Component<Props> {
   private replaceSlashCommentsWithAnnotations(value: string) {
     return value
       .replace(/<span class="token comment">\/\* @info (.*?)\*\/<\/span>\s*/g, (match, content) => {
-        return `<span class="code-annotation" data-tippy-content="${this.escapeHtml(content)}">`;
+        return content
+          ? `<span class="code-annotation with-tooltip" data-tippy-content="${this.escapeHtml(
+              content
+            )}">`
+          : '<span class="code-annotation">';
       })
       .replace(/<span class="token comment">\/\* @hide (.*?)\*\/<\/span>\s*/g, (match, content) => {
         return `<span><span class="code-hidden">%%placeholder-start%%</span><span class="code-placeholder">${this.escapeHtml(
@@ -201,8 +212,36 @@ const remapLanguages: Record<string, string> = {
   rb: 'ruby',
 };
 
-export const InlineCode: React.FC<{ customCss?: SerializedStyles }> = ({ children, customCss }) => (
-  <code css={[STYLES_INLINE_CODE, customCss]} className="inline">
+type InlineCodeProps = React.PropsWithChildren<{ className?: string }>;
+
+export const InlineCode = ({ children, className }: InlineCodeProps) => (
+  <code css={STYLES_INLINE_CODE} className={className ? `inline ${className}` : 'inline'}>
     {children}
   </code>
 );
+
+const codeBlockContainerStyle = {
+  margin: 0,
+  padding: `3px 6px`,
+};
+
+const codeBlockInlineContainerStyle = {
+  display: 'inline-flex',
+};
+
+type CodeBlockProps = React.PropsWithChildren<{ inline?: boolean }>;
+
+export const CodeBlock = ({ children, inline = false }: CodeBlockProps) => {
+  const Element = inline ? 'span' : 'pre';
+  return (
+    <Element
+      css={[
+        STYLES_CODE_CONTAINER,
+        codeBlockContainerStyle,
+        inline && codeBlockInlineContainerStyle,
+      ]}
+      {...attributes}>
+      <code css={[STYLES_CODE_BLOCK, { fontSize: '80%' }]}>{children}</code>
+    </Element>
+  );
+};

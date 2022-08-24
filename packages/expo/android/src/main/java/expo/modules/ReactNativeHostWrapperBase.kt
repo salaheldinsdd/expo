@@ -11,12 +11,11 @@ import com.facebook.react.bridge.JSIModuleSpec
 import com.facebook.react.bridge.JavaScriptContextHolder
 import com.facebook.react.bridge.JavaScriptExecutorFactory
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.devsupport.RedBoxHandler
 import java.lang.reflect.Method
 
 open class ReactNativeHostWrapperBase(
   application: Application,
-  private val host: ReactNativeHost
+  protected val host: ReactNativeHost
 ) : ReactNativeHost(application) {
   internal val reactNativeHostHandlers = ExpoModulesPackage.packageList
     .flatMap { it.createReactNativeHostHandlers(application) }
@@ -36,15 +35,15 @@ open class ReactNativeHostWrapperBase(
       handler.onDidCreateReactInstanceManager(result, developerSupport)
     }
 
+    injectHostReactInstanceManager(result)
+
     return result
   }
 
-  override fun getRedBoxHandler(): RedBoxHandler? {
-    return invokeDelegateMethod("getRedBoxHandler")
-  }
-
   override fun getJavaScriptExecutorFactory(): JavaScriptExecutorFactory? {
-    return invokeDelegateMethod("getJavaScriptExecutorFactory")
+    return reactNativeHostHandlers.asSequence()
+      .mapNotNull { it.javaScriptExecutorFactory }
+      .firstOrNull() ?: invokeDelegateMethod("getJavaScriptExecutorFactory")
   }
 
   @Suppress("DEPRECATION")
@@ -74,7 +73,9 @@ open class ReactNativeHostWrapperBase(
   }
 
   override fun getUseDeveloperSupport(): Boolean {
-    return host.useDeveloperSupport
+    return reactNativeHostHandlers.asSequence()
+      .mapNotNull { it.useDeveloperSupport }
+      .firstOrNull() ?: host.useDeveloperSupport
   }
 
   override fun getPackages(): MutableList<ReactPackage> {
@@ -94,8 +95,7 @@ open class ReactNativeHostWrapperBase(
       reactNativeHostHandlers.forEach { handler ->
         handler.onRegisterJSIModules(reactApplicationContext, jsContext, useDeveloperSupport)
       }
-      userJSIModulePackage?.getJSIModules(reactApplicationContext, jsContext)
-      return emptyList()
+      return userJSIModulePackage?.getJSIModules(reactApplicationContext, jsContext)?.toList() ?: emptyList()
     }
   }
 
@@ -108,6 +108,16 @@ open class ReactNativeHostWrapperBase(
       methodMap[name] = method
     }
     return method!!.invoke(host) as T
+  }
+
+  /**
+   * Inject the @{ReactInstanceManager} from the wrapper to the wrapped host.
+   * In case the wrapped host to call `getReactInstanceManager` inside its methods.
+   */
+  fun injectHostReactInstanceManager(reactInstanceManager: ReactInstanceManager) {
+    val mReactInstanceManagerField = ReactNativeHost::class.java.getDeclaredField("mReactInstanceManager")
+    mReactInstanceManagerField.isAccessible = true
+    mReactInstanceManagerField.set(host, reactInstanceManager)
   }
 
   //endregion

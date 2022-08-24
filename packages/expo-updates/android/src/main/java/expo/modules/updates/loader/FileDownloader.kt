@@ -7,9 +7,6 @@ import expo.modules.updates.UpdatesConfiguration
 import expo.modules.updates.UpdatesUtils
 import expo.modules.updates.db.entity.AssetEntity
 import expo.modules.updates.launcher.NoDatabaseLauncher
-import expo.modules.updates.manifest.ManifestFactory
-import expo.modules.updates.manifest.ManifestHeaderData
-import expo.modules.updates.manifest.UpdateManifest
 import expo.modules.updates.selectionpolicy.SelectionPolicies
 import okhttp3.*
 import org.json.JSONArray
@@ -22,10 +19,14 @@ import kotlin.math.min
 import org.apache.commons.fileupload.MultipartStream
 import org.apache.commons.fileupload.ParameterParser
 import java.io.ByteArrayOutputStream
-import android.util.Base64
+import expo.modules.easclient.EASClientID
 import okhttp3.Headers.Companion.toHeaders
 import expo.modules.jsonutils.getNullable
-import expo.modules.updates.codesigning.SignatureHeaderInfo
+import expo.modules.updates.codesigning.ValidationResult
+import expo.modules.updates.db.UpdatesDatabase
+import expo.modules.updates.db.entity.UpdateEntity
+import expo.modules.updates.manifest.*
+import java.security.cert.CertificateException
 
 open class FileDownloader(private val client: OkHttpClient) {
   constructor(context: Context) : this(OkHttpClient.Builder().cache(getCache(context)).build())
@@ -45,7 +46,12 @@ open class FileDownloader(private val client: OkHttpClient) {
     fun onSuccess(assetEntity: AssetEntity, isNew: Boolean)
   }
 
-  private fun downloadFileToPath(request: Request, destination: File, callback: FileDownloadCallback) {
+  private fun downloadFileAndVerifyHashAndWriteToPath(
+    request: Request,
+    expectedBase64URLEncodedSHA256Hash: String?,
+    destination: File,
+    callback: FileDownloadCallback
+  ) {
     downloadData(
       request,
       object : Callback {
@@ -66,7 +72,7 @@ open class FileDownloader(private val client: OkHttpClient) {
           }
           try {
             response.body!!.byteStream().use { inputStream ->
-              val hash = UpdatesUtils.sha256AndWriteToFile(inputStream, destination)
+              val hash = UpdatesUtils.verifySHA256AndWriteToFile(inputStream, destination, expectedBase64URLEncodedSHA256Hash)
               callback.onSuccess(destination, hash)
             }
           } catch (e: Exception) {
@@ -304,6 +310,7 @@ open class FileDownloader(private val client: OkHttpClient) {
     asset: AssetEntity,
     destinationDirectory: File?,
     configuration: UpdatesConfiguration,
+    context: Context,
     callback: AssetDownloadCallback
   ) {
     if (asset.url == null) {
@@ -317,8 +324,9 @@ open class FileDownloader(private val client: OkHttpClient) {
       callback.onSuccess(asset, false)
     } else {
       try {
-        downloadFileToPath(
-          createRequestForAsset(asset, configuration),
+        downloadFileAndVerifyHashAndWriteToPath(
+          createRequestForAsset(asset, configuration, context),
+          asset.expectedHash,
           path,
           object : FileDownloadCallback {
             override fun onFailure(e: Exception) {
@@ -326,14 +334,6 @@ open class FileDownloader(private val client: OkHttpClient) {
             }
 
             override fun onSuccess(file: File, hash: ByteArray) {
-              // base64url - https://datatracker.ietf.org/doc/html/rfc4648#section-5
-              val hashBase64String = Base64.encodeToString(hash, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
-              val expectedAssetHash = asset.expectedHash?.toLowerCase(Locale.ROOT)
-              if (expectedAssetHash != null && expectedAssetHash != hashBase64String) {
-                callback.onFailure(Exception("Asset hash invalid: ${asset.key}; expectedHash: $expectedAssetHash; actualHash: $hashBase64String"), asset)
-                return
-              }
-
               asset.downloadTime = Date()
               asset.relativePath = filename
               asset.hash = hash
@@ -385,19 +385,50 @@ open class FileDownloader(private val client: OkHttpClient) {
       configuration: UpdatesConfiguration,
       callback: ManifestDownloadCallback
     ) {
-      configuration.codeSigningConfiguration?.validateSignature(
-        SignatureHeaderInfo.parseSignatureHeader(manifestHeaderData.signature),
-        bodyString.toByteArray(),
-        certificateChainFromManifestResponse,
-      )?.let {
-        if (!it) {
-          throw IOException("Manifest download was successful, but signature was incorrect")
-        }
-      }
-
       if (configuration.expectsSignedManifest) {
         preManifest.put("isVerified", isVerified)
       }
+
+      // check code signing if code signing is configured
+      // 1. verify the code signing signature (throw if invalid)
+      // 2. then, if the code signing certificate is only valid for a particular project, verify that the manifest
+      //    has the correct info for code signing. If the code signing certificate doesn't specify a particular
+      //    project, it is assumed to be valid for all projects
+      // 3. mark the manifest as verified if both of these pass
+      try {
+        configuration.codeSigningConfiguration?.let { codeSigningConfiguration ->
+          val signatureValidationResult = codeSigningConfiguration.validateSignature(
+            manifestHeaderData.signature,
+            bodyString.toByteArray(),
+            certificateChainFromManifestResponse,
+          )
+          if (signatureValidationResult.validationResult == ValidationResult.INVALID) {
+            throw IOException("Manifest download was successful, but signature was incorrect")
+          }
+
+          if (signatureValidationResult.validationResult != ValidationResult.SKIPPED) {
+            val manifestForProjectInformation = ManifestFactory.getManifest(
+              preManifest,
+              manifestHeaderData,
+              extensions,
+              configuration
+            ).manifest
+            signatureValidationResult.expoProjectInformation?.let { expoProjectInformation ->
+              if (expoProjectInformation.projectId != manifestForProjectInformation.getEASProjectID() ||
+                expoProjectInformation.scopeKey != manifestForProjectInformation.getScopeKey()
+              ) {
+                throw CertificateException("Invalid certificate for manifest project ID or scope key")
+              }
+            }
+
+            preManifest.put("isVerified", true)
+          }
+        }
+      } catch (e: Exception) {
+        callback.onFailure(e.message!!, e)
+        return
+      }
+
       val updateManifest = ManifestFactory.getManifest(preManifest, manifestHeaderData, extensions, configuration)
       if (!SelectionPolicies.matchesFilters(updateManifest.updateEntity!!, updateManifest.manifestFilters)) {
         val message =
@@ -441,19 +472,29 @@ open class FileDownloader(private val client: OkHttpClient) {
       throw IOException("No compatible manifest found. SDK Versions supported: " + configuration.sdkVersion + " Provided manifestString: " + manifestString)
     }
 
-    internal fun createRequestForAsset(assetEntity: AssetEntity, configuration: UpdatesConfiguration): Request {
+    private fun Request.Builder.addHeadersFromJSONObject(headers: JSONObject?): Request.Builder {
+      if (headers == null) {
+        return this
+      }
+
+      headers.keys().asSequence().forEach { key ->
+        header(key, headers.require<Any>(key).toString())
+      }
+      return this
+    }
+
+    internal fun createRequestForAsset(
+      assetEntity: AssetEntity,
+      configuration: UpdatesConfiguration,
+      context: Context,
+    ): Request {
       return Request.Builder()
         .url(assetEntity.url!!.toString())
-        .apply {
-          assetEntity.extraRequestHeaders?.let { headers ->
-            headers.keys().asSequence().forEach { key ->
-              header(key, headers.require(key))
-            }
-          }
-        }
+        .addHeadersFromJSONObject(assetEntity.extraRequestHeaders)
         .header("Expo-Platform", "android")
         .header("Expo-API-Version", "1")
         .header("Expo-Updates-Environment", "BARE")
+        .header("EAS-Client-ID", EASClientID(context).uuid.toString())
         .apply {
           for ((key, value) in configuration.requestHeaders) {
             header(key, value)
@@ -469,22 +510,14 @@ open class FileDownloader(private val client: OkHttpClient) {
     ): Request {
       return Request.Builder()
         .url(configuration.updateUrl.toString())
-        .apply {
-          // apply extra headers before anything else, so they don't override preset headers
-          if (extraHeaders != null) {
-            val keySet = extraHeaders.keys()
-            while (keySet.hasNext()) {
-              val key = keySet.next()
-              header(key, extraHeaders.optString(key, ""))
-            }
-          }
-        }
+        .addHeadersFromJSONObject(extraHeaders)
         .header("Accept", "multipart/mixed,application/expo+json,application/json")
         .header("Expo-Platform", "android")
         .header("Expo-API-Version", "1")
         .header("Expo-Updates-Environment", "BARE")
         .header("Expo-JSON-Error", "true")
         .header("Expo-Accept-Signature", configuration.expectsSignedManifest.toString())
+        .header("EAS-Client-ID", EASClientID(context).uuid.toString())
         .apply {
           val runtimeVersion = configuration.runtimeVersion
           val sdkVersion = configuration.sdkVersion
@@ -527,6 +560,25 @@ open class FileDownloader(private val client: OkHttpClient) {
 
     private fun getCacheDirectory(context: Context): File {
       return File(context.cacheDir, "okhttp")
+    }
+
+    fun getExtraHeaders(
+      database: UpdatesDatabase,
+      configuration: UpdatesConfiguration,
+      launchedUpdate: UpdateEntity?,
+      embeddedUpdate: UpdateEntity?
+    ): JSONObject {
+      val extraHeaders =
+        ManifestMetadata.getServerDefinedHeaders(database, configuration) ?: JSONObject()
+
+      launchedUpdate?.let {
+        extraHeaders.put("Expo-Current-Update-ID", it.id.toString().lowercase())
+      }
+      embeddedUpdate?.let {
+        extraHeaders.put("Expo-Embedded-Update-ID", it.id.toString().lowercase())
+      }
+
+      return extraHeaders
     }
   }
 }

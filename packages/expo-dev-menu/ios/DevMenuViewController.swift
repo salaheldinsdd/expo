@@ -44,21 +44,9 @@ class DevMenuViewController: UIViewController {
     reactRootView?.becomeFirstResponder()
   }
 
-  override var shouldAutorotate: Bool {
-    get {
-      return true
-    }
-  }
-
   override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
     get {
-      return UIInterfaceOrientationMask.portrait
-    }
-  }
-
-  override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
-    get {
-      return UIInterfaceOrientation.portrait
+      return UIInterfaceOrientationMask.all
     }
   }
 
@@ -73,11 +61,16 @@ class DevMenuViewController: UIViewController {
   // MARK: private
 
   private func initialProps() -> [String: Any] {
+    let isSimulator = TARGET_IPHONE_SIMULATOR > 0
+    
     return [
       "showOnboardingView": manager.shouldShowOnboarding(),
       "appInfo": manager.getAppInfo(),
       "devSettings": manager.getDevSettings(),
+      "menuPreferences": DevMenuPreferences.serialize(),
       "uuid": UUID.init().uuidString,
+      "isDevice": !isSimulator,
+      "registeredCallbacks": manager.registeredCallbacks
     ]
   }
 

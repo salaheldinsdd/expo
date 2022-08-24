@@ -15,6 +15,10 @@ import PlatformsSection from '~/components/plugins/PlatformsSection';
 
 <APIInstallSection />
 
+## Configuration
+
+Starting in Android 12 (API level 31), the system has a 200ms limit for each sensor updates. If you need a update interval less than 200ms, you should add `<uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>` to **AndroidManifest.xml**.
+
 ## API
 
 ```js
@@ -24,6 +28,7 @@ import {
   Accelerometer,
   Barometer,
   Gyroscope,
+  LightSensor,
   Magnetometer,
   MagnetometerUncalibrated,
   Pedometer,
@@ -36,4 +41,5 @@ For more information, please see the documentation for the sensor you are intere
 - [Barometer](barometer.md)
 - [Gyroscope](gyroscope.md)
 - [Magnetometer](magnetometer.md)
+- [LightSensor](light-sensor.md)
 - [Pedometer](pedometer.md)

@@ -1,111 +1,167 @@
 import * as WebBrowser from 'expo-web-browser';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
 
-import Button from '../../components/Button';
-import Configurator, { ConfiguratorChoiceType } from '../../components/Configurator';
-import HeadingText from '../../components/HeadingText';
-import MonoText from '../../components/MonoText';
-import { Colors } from '../../constants';
+import FunctionDemo, { FunctionDescription } from '../../components/FunctionDemo';
+import Colors from '../../constants/Colors';
 
-const url = 'https://blog.expo.dev/expo-sdk-44-4c4b8306584a';
+const URL = 'https://blog.expo.dev/expo-sdk-44-4c4b8306584a';
 
-const openBrowserConfigurationChoices: ConfiguratorChoiceType[] = [
-  {
-    name: 'toolbarColor',
-    title: `Use toolbarColor (${Colors.tintColor})`,
-    initial: false,
-    resolve: (checked) => (checked ? Colors.tintColor : undefined),
-  },
-  {
-    name: 'secondaryToolbarColor',
-    title: `Use secondaryToolbarColor (${Colors.highlightColor})`,
-    platforms: ['android'],
-    initial: false,
-    resolve: (checked) => (checked ? Colors.highlightColor : undefined),
-  },
-  {
-    name: 'controlsColor',
-    title: `Use controlsColor (${Colors.headerTitle})`,
-    initial: false,
-    resolve: (checked) => (checked ? Colors.headerTitle : undefined),
-  },
-  {
-    name: 'showTitle',
-    title: 'Show title',
-    platforms: ['android'],
-    initial: false,
-  },
-  {
-    name: 'showInRecents',
-    title: 'Show in recents',
-    platforms: ['android'],
-    initial: false,
-  },
-  {
-    name: 'enableBarCollapsing',
-    title: 'Enable bar collapsing',
-    initial: false,
-  },
-  {
-    name: 'readerMode',
-    title: 'Reader mode',
-    platforms: ['ios'],
-    initial: false,
-  },
-  {
-    name: 'enableDefaultShareMenuItem',
-    title: 'Enable default share menu item',
-    platforms: ['android'],
-    initial: false,
-  },
-];
+const FUNCTIONS_DESCRIPTION: FunctionDescription = {
+  name: 'openBrowserAsync',
+  parameters: [
+    {
+      type: 'constant',
+      name: 'url',
+      value: URL,
+    },
+    {
+      type: 'object',
+      name: 'options',
+      properties: [
+        {
+          name: 'toolbarColor',
+          type: 'enum',
+          values: [
+            {
+              name: 'undefined',
+              value: undefined,
+            },
+            {
+              name: `"${Colors.tintColor}"`,
+              value: Colors.tintColor,
+            },
+            {
+              name: '"pink"',
+              value: 'pink',
+            },
+          ],
+        },
+        {
+          name: 'secondaryToolbarColor',
+          platforms: ['android'],
+          type: 'enum',
+          values: [
+            {
+              name: 'undefined',
+              value: undefined,
+            },
+            {
+              name: `"${Colors.highlightColor}"`,
+              value: Colors.highlightColor,
+            },
+            {
+              name: '"blue"',
+              value: 'blue',
+            },
+          ],
+        },
+        {
+          name: 'controlsColor',
+          type: 'enum',
+          values: [
+            {
+              name: 'undefined',
+              value: undefined,
+            },
+            { name: `"${Colors.headerTitle}"`, value: Colors.headerTitle },
+            {
+              name: '"red"',
+              value: 'red',
+            },
+          ],
+        },
+        {
+          type: 'boolean',
+          name: 'showTitle',
+          platforms: ['android'],
+          initial: false,
+        },
+        {
+          type: 'boolean',
+          name: 'showInRecents',
+          platforms: ['android'],
+          initial: false,
+        },
+        {
+          type: 'boolean',
+          name: 'enableBarCollapsing',
+          initial: false,
+        },
+        {
+          type: 'boolean',
+          name: 'readerMode',
+          platforms: ['ios'],
+          initial: false,
+        },
+        {
+          type: 'boolean',
+          name: 'enableDefaultShareMenuItem',
+          platforms: ['android'],
+          initial: false,
+        },
+        {
+          name: 'presentationStyle',
+          type: 'enum',
+          platforms: ['ios'],
+          values: [
+            {
+              name: 'WebBrowserPresentationStyle.OVER_FULL_SCREEN',
+              value: WebBrowser.WebBrowserPresentationStyle.OVER_FULL_SCREEN,
+            },
+            {
+              name: 'WebBrowserPresentationStyle.FULL_SCREEN',
+              value: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
+            },
+            {
+              name: 'WebBrowserPresentationStyle.PAGE_SHEET',
+              value: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
+            },
+            {
+              name: 'WebBrowserPresentationStyle.FORM_SHEET',
+              value: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+            },
+            {
+              name: 'WebBrowserPresentationStyle.CURRENT_CONTEXT',
+              value: WebBrowser.WebBrowserPresentationStyle.CURRENT_CONTEXT,
+            },
+            {
+              name: 'WebBrowserPresentationStyle.OVER_CURRENT_CONTEXT',
+              value: WebBrowser.WebBrowserPresentationStyle.OVER_CURRENT_CONTEXT,
+            },
+            {
+              name: 'WebBrowserPresentationStyle.POPOVER',
+              value: WebBrowser.WebBrowserPresentationStyle.POPOVER,
+            },
+            {
+              name: 'WebBrowserPresentationStyle.AUTOMATIC',
+              value: WebBrowser.WebBrowserPresentationStyle.AUTOMATIC,
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  actions: [
+    { name: 'Open', action: WebBrowser.openBrowserAsync },
+    {
+      name: 'Open and dismiss',
+      action: (url: string, openOptions: WebBrowser.WebBrowserOpenOptions) => {
+        const openBrowserPromise = WebBrowser.openBrowserAsync(url, openOptions);
+        WebBrowser.dismissBrowser();
+        return openBrowserPromise;
+      },
+    },
+    {
+      name: 'Open twice',
+      action: (url: string, openOptions: WebBrowser.WebBrowserOpenOptions) => {
+        WebBrowser.openBrowserAsync(url, openOptions);
+        return WebBrowser.openBrowserAsync(url, openOptions);
+      },
+    },
+    { name: 'Dismiss (no-op)', action: async () => WebBrowser.dismissBrowser() },
+  ],
+};
 
 export default function OpenBrowserAsyncDemo() {
-  const [openOptions, setOpenOptions] = React.useState({});
-  const openBrowser = React.useCallback(async () => {
-    const result = await WebBrowser.openBrowserAsync(url, openOptions);
-    alert(JSON.stringify(result, null, 2));
-  }, [openOptions]);
-
-  const openAndDismiss = React.useCallback(() => {
-    WebBrowser.openBrowserAsync(url, openOptions);
-    WebBrowser.dismissBrowser();
-  }, [openOptions]);
-
-  const openTwice = React.useCallback(async () => {
-    WebBrowser.openBrowserAsync(url, openOptions);
-    const result = await WebBrowser.openBrowserAsync(url, openOptions);
-    if (result.type === WebBrowser.WebBrowserResultType.LOCKED) {
-      alert('Opening the second browser was properly locked');
-    } else {
-      alert(`Opening the second browser unexpectedly returned type: ${result.type}`);
-    }
-  }, [openOptions]);
-
-  return (
-    <>
-      <HeadingText>openBrowserAsync</HeadingText>
-      <Configurator choices={openBrowserConfigurationChoices} onChange={setOpenOptions} />
-      <MonoText>WebBrowser.openBrowserAsync(url, {JSON.stringify(openOptions, null, 2)})</MonoText>
-      <View style={styles.buttons}>
-        <Button style={styles.button} onPress={openBrowser} title="Open" />
-        <Button style={styles.button} onPress={openAndDismiss} title="Open and dismiss" />
-        <Button style={styles.button} onPress={openTwice} title="Open twice" />
-        <Button style={styles.button} onPress={WebBrowser.dismissBrowser} title="Dismiss (no-op)" />
-      </View>
-    </>
-  );
+  return <FunctionDemo namespace="WebBrowser" {...FUNCTIONS_DESCRIPTION} />;
 }
-
-const styles = StyleSheet.create({
-  buttons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  button: {
-    marginVertical: 10,
-    marginHorizontal: 5,
-    alignItems: 'flex-start',
-  },
-});

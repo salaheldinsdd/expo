@@ -10,7 +10,7 @@ import APISectionInterfaces from '~/components/plugins/api/APISectionInterfaces'
 import APISectionMethods from '~/components/plugins/api/APISectionMethods';
 import APISectionProps from '~/components/plugins/api/APISectionProps';
 import APISectionTypes from '~/components/plugins/api/APISectionTypes';
-import { TypeDocKind, getComponentName } from '~/components/plugins/api/APISectionUtils';
+import { getComponentName, TypeDocKind } from '~/components/plugins/api/APISectionUtils';
 import { usePageApiVersion } from '~/providers/page-api-version';
 
 const LATEST_VERSION = `v${require('~/package.json').version}`;
@@ -43,13 +43,21 @@ const isListener = ({ name }: GeneratedData) =>
 
 const isProp = ({ name }: GeneratedData) => name.includes('Props') && name !== 'ErrorRecoveryProps';
 
-const isComponent = ({ type, extendedTypes, signatures }: GeneratedData) =>
-  (type?.name && ['React.FC', 'ForwardRefExoticComponent'].includes(type?.name)) ||
-  (extendedTypes && extendedTypes.length ? extendedTypes[0].name === 'Component' : false) ||
-  (signatures && signatures[0]
-    ? signatures[0].type.name === 'Element' ||
+const isComponent = ({ type, extendedTypes, signatures }: GeneratedData) => {
+  if (type?.name && ['React.FC', 'ForwardRefExoticComponent'].includes(type?.name)) {
+    return true;
+  } else if (extendedTypes && extendedTypes.length) {
+    return extendedTypes[0].name === 'Component';
+  } else if (signatures && signatures.length) {
+    if (
+      signatures[0].type.name === 'Element' ||
       (signatures[0].parameters && signatures[0].parameters[0].name === 'props')
-    : false);
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
 
 const isConstant = ({ name, type }: GeneratedData) =>
   !['default', 'Constants', 'EventEmitter'].includes(name) &&
@@ -73,7 +81,6 @@ const renderAPI = (
       TypeDocKind.Function,
       entry => !isListener(entry) && !isHook(entry) && !isComponent(entry)
     );
-    const hooks = filterDataByKind(data, TypeDocKind.Function, isHook);
     const eventSubscriptions = filterDataByKind(data, TypeDocKind.Function, isListener);
 
     const types = filterDataByKind(
@@ -104,7 +111,11 @@ const renderAPI = (
       entry => entry.name === 'defaultProps'
     )[0];
 
-    const enums = filterDataByKind(data, [TypeDocKind.Enum, TypeDocKind.LegacyEnum]);
+    const enums = filterDataByKind(
+      data,
+      [TypeDocKind.Enum, TypeDocKind.LegacyEnum],
+      entry => entry.name !== 'default'
+    );
     const interfaces = filterDataByKind(data, TypeDocKind.Interface);
     const constants = filterDataByKind(data, TypeDocKind.Variable, entry => isConstant(entry));
 
@@ -130,8 +141,9 @@ const renderAPI = (
       .map((cls: ClassDefinitionData) =>
         cls.children?.filter(
           child =>
-            child.kind === TypeDocKind.Method &&
+            (child?.kind === TypeDocKind.Method || child?.kind === TypeDocKind.Property) &&
             child?.flags?.isExternal !== true &&
+            !child.inheritedFrom &&
             child.name !== 'render' &&
             // note(simek): hide unannotated "private" methods
             !child.name.startsWith('_')
@@ -141,12 +153,27 @@ const renderAPI = (
 
     const methodsNames = methods.map(method => method.name);
     const staticMethods = componentsChildren.filter(
-      // note(simek): hide duplicate exports for Camera API
-      method => method?.flags?.isStatic === true && !methodsNames.includes(method.name)
+      // note(simek): hide duplicate exports from class components
+      method =>
+        method?.kind === TypeDocKind.Method &&
+        method?.flags?.isStatic === true &&
+        !methodsNames.includes(method.name) &&
+        !isHook(method as GeneratedData)
     );
     const componentMethods = componentsChildren
-      .filter(method => method?.flags?.isStatic !== true && !method?.overwrites)
+      .filter(
+        method =>
+          method?.kind === TypeDocKind.Method &&
+          method?.flags?.isStatic !== true &&
+          !method?.overwrites
+      )
       .filter(Boolean);
+
+    const hooks = filterDataByKind(
+      [...data, ...componentsChildren].filter(Boolean),
+      [TypeDocKind.Function, TypeDocKind.Property],
+      isHook
+    );
 
     return (
       <>
@@ -165,12 +192,12 @@ const renderAPI = (
           apiName={apiName}
           header="Event Subscriptions"
         />
-        <APISectionTypes data={types} />
         <APISectionInterfaces data={interfaces} />
+        <APISectionTypes data={types} />
         <APISectionEnums data={enums} />
       </>
     );
-  } catch (error) {
+  } catch {
     return <P>No API data file found, sorry!</P>;
   }
 };

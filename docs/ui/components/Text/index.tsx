@@ -1,10 +1,9 @@
 import { css, SerializedStyles } from '@emotion/react';
-import { theme, typography } from '@expo/styleguide';
+import { theme, typography, spacing, borderRadius } from '@expo/styleguide';
 import React from 'react';
 
 import { LinkBase, LinkProps } from './Link';
 import { TextComponentProps, TextElement } from './types';
-import { withAnchor } from './withAnchor';
 
 import { durations } from '~/ui/foundations/durations';
 
@@ -55,24 +54,12 @@ const listStyle = css({
   marginLeft: '1.5rem',
 });
 
-export const H1 = withAnchor(
-  createTextComponent(TextElement.H1, css(typography.headers.default.h1))
-);
-export const H2 = withAnchor(
-  createTextComponent(TextElement.H2, css(typography.headers.default.h2))
-);
-export const H3 = withAnchor(
-  createTextComponent(TextElement.H4, css(typography.headers.default.h3))
-);
-export const H4 = withAnchor(
-  createTextComponent(TextElement.H4, css(typography.headers.default.h4))
-);
-export const H5 = withAnchor(
-  createTextComponent(TextElement.H5, css(typography.headers.default.h5))
-);
-export const H6 = withAnchor(
-  createTextComponent(TextElement.H6, css(typography.headers.default.h6))
-);
+export const H1 = createTextComponent(TextElement.H1, css(typography.headers.default.h1));
+export const H2 = createTextComponent(TextElement.H2, css(typography.headers.default.h2));
+export const H3 = createTextComponent(TextElement.H4, css(typography.headers.default.h3));
+export const H4 = createTextComponent(TextElement.H4, css(typography.headers.default.h4));
+export const H5 = createTextComponent(TextElement.H5, css(typography.headers.default.h5));
+export const H6 = createTextComponent(TextElement.H6, css(typography.headers.default.h6));
 export const P = createTextComponent(TextElement.P, css(typography.body.paragraph));
 export const CODE = createTextComponent(TextElement.CODE, css(typography.utility.inlineCode));
 export const LI = createTextComponent(TextElement.LI, css(typography.body.li));
@@ -85,6 +72,18 @@ export const DEMI = createTextComponent(TextElement.SPAN, css(typography.utility
 export const UL = createTextComponent(TextElement.UL, css([typography.body.ul, listStyle]));
 export const OL = createTextComponent(TextElement.OL, css([typography.body.ol, listStyle]));
 export const PRE = createTextComponent(TextElement.PRE, css(typography.utility.pre));
+
+const kbdStyle = css({
+  fontFamily: typography.fontFaces.medium,
+  color: theme.text.secondary,
+  padding: `${spacing[0.5]}px ${spacing[1.5]}px`,
+  boxShadow: `0 0.1rem 0 1px ${theme.border.default}`,
+  borderRadius: borderRadius.small,
+  position: 'relative',
+  top: -1,
+});
+
+export const KBD = createTextComponent(TextElement.KBD, css([typography.utility.pre, kbdStyle]));
 
 export const A = (props: Omit<LinkProps, 'router'> & { isStyled?: boolean }) => {
   const { isStyled, ...rest } = props;

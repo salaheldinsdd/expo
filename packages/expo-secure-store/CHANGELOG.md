@@ -12,7 +12,21 @@
 
 ### 🐛 Bug fixes
 
+### ⚠️ Notices
+
+- Changed `requireAuthentication` option to also require biometrics on iOS (matches Android behavior) ([#18591](https://github.com/expo/expo/pull/18591) by [@stefan-schweiger](https://github.com/stefan-schweiger))
+
 ### 💡 Others
+
+## 11.3.0 — 2022-07-07
+
+_This version does not introduce any user-facing changes._
+
+## 11.2.0 — 2022-04-18
+
+### ⚠️ Notices
+
+- On Android bump `compileSdkVersion` to `31`, `targetSdkVersion` to `31` and `Java` version to `11`. ([#16941](https://github.com/expo/expo/pull/16941) by [@bbarthec](https://github.com/bbarthec))
 
 ## 11.1.1 - 2022-02-01
 

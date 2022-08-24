@@ -2,9 +2,8 @@ import { css } from '@emotion/react';
 import { theme, typography } from '@expo/styleguide';
 import * as React from 'react';
 
-import TerminalBlock from './TerminalBlock';
-
 import { usePageMetadata } from '~/providers/page-metadata';
+import { Terminal } from '~/ui/components/Snippet';
 
 const STYLES_P = css`
   line-height: 1.8rem;
@@ -30,43 +29,47 @@ const STYLES_LINK = css`
   }
 `;
 
-type Props = {
+type InstallSectionProps = React.PropsWithChildren<{
   packageName: string;
   hideBareInstructions?: boolean;
   cmd?: string[];
   href?: string;
-};
+}>;
 
 const getPackageLink = (packageNames: string) =>
   `https://github.com/expo/expo/tree/main/packages/${packageNames.split(' ')[0]}`;
 
-const InstallSection: React.FC<Props> = ({
+const InstallSection = ({
   packageName,
   hideBareInstructions = false,
-  cmd = [`expo install ${packageName}`],
+  cmd = [`$ expo install ${packageName}`],
   href = getPackageLink(packageName),
-}) => (
-  <div>
-    <TerminalBlock cmd={cmd} />
-    {hideBareInstructions ? null : (
-      <p css={STYLES_P}>
-        If you're installing this in a{' '}
-        <a css={STYLES_LINK} href="/introduction/managed-vs-bare/#bare-workflow">
-          bare React Native app
-        </a>
-        , you should also follow{' '}
-        <a css={STYLES_BOLD} href={href}>
-          these additional installation instructions
-        </a>
-        .
-      </p>
-    )}
-  </div>
-);
+}: InstallSectionProps) => {
+  const { sourceCodeUrl } = usePageMetadata();
+
+  return (
+    <>
+      <Terminal cmd={cmd} />
+      {hideBareInstructions ? null : (
+        <p css={STYLES_P}>
+          If you're installing this in a{' '}
+          <a css={STYLES_LINK} href="/introduction/managed-vs-bare/#bare-workflow">
+            bare React Native app
+          </a>
+          , you should also follow{' '}
+          <a css={STYLES_BOLD} href={sourceCodeUrl ?? href}>
+            these additional installation instructions
+          </a>
+          .
+        </p>
+      )}
+    </>
+  );
+};
 
 export default InstallSection;
 
-export const APIInstallSection: React.FC<Props> = props => {
+export const APIInstallSection = (props: InstallSectionProps) => {
   const { packageName } = usePageMetadata();
   return <InstallSection {...props} packageName={props.packageName ?? packageName} />;
 };

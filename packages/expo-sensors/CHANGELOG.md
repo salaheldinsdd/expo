@@ -6,11 +6,33 @@
 
 ### 🎉 New features
 
+- Added support for the light sensor on Android. ([#18225](https://github.com/expo/expo/pull/18225) by [bearkillerPT](https://github.com/bearkillerPT))
+
 ### 🐛 Bug fixes
 
 ### 💡 Others
 
+- Drop `@expo/config-plugins` dependency in favor of peer dependency on `expo`. ([#18595](https://github.com/expo/expo/pull/18595) by [@EvanBacon](https://github.com/EvanBacon))
+
+## 11.4.0 — 2022-07-07
+
+_This version does not introduce any user-facing changes._
+
+## 11.3.0 — 2022-04-27
+
+### ⚠️ Notices
+
+- Fixed exception on Android S+ devices for missing `HIGH_SAMPLING_RATE_SENSORS` permission. If the sensor update interval needs to be lower than 200ms, `HIGH_SAMPLING_RATE_SENSORS` should be explicitly added to **AndroidManifest.xml**. ([#17177](https://github.com/expo/expo/pull/17177) by [@kudo](https://github.com/kudo))
+
+## 11.2.0 — 2022-04-18
+
+### 💡 Others
+
 - Updated `@expo/config-plugins` from `4.0.2` to `4.0.14` ([#15621](https://github.com/expo/expo/pull/15621) by [@EvanBacon](https://github.com/EvanBacon))
+
+### ⚠️ Notices
+
+- On Android bump `compileSdkVersion` to `31`, `targetSdkVersion` to `31` and `Java` version to `11`. ([#16941](https://github.com/expo/expo/pull/16941) by [@bbarthec](https://github.com/bbarthec))
 
 ## 11.1.1 - 2022-02-01
 

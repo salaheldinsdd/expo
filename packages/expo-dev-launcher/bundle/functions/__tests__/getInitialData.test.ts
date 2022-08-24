@@ -1,24 +1,34 @@
 import {
+  consumeNavigationStateAsync,
   getBuildInfoAsync,
   getCrashReport,
   installationID,
 } from '../../native-modules/DevLauncherInternal';
-import { getSettingsAsync } from '../../native-modules/DevMenuInternal';
+import { getMenuPreferencesAsync } from '../../native-modules/DevMenuPreferences';
 import { getDevSessionsAsync } from '../getDevSessionsAsync';
 import { getInitialData } from '../getInitialData';
 import { restoreUserAsync } from '../restoreUserAsync';
 
-jest.mock('../restoreUserAsync');
-jest.mock('../getDevSessionsAsync');
+jest.mock('../restoreUserAsync', () => {
+  return {
+    restoreUserAsync: jest.fn().mockResolvedValue(null),
+  };
+});
+jest.mock('../getDevSessionsAsync', () => {
+  return {
+    getDevSessionsAsync: jest.fn().mockResolvedValue([]),
+  };
+});
 
 const mockRestoreUserAsync = restoreUserAsync as jest.Mock;
 
 const mockFns = [
   getBuildInfoAsync,
-  getSettingsAsync,
+  getMenuPreferencesAsync,
   restoreUserAsync,
   getDevSessionsAsync,
   getCrashReport,
+  consumeNavigationStateAsync,
 ] as jest.Mock[];
 
 describe('getInitialData()', () => {
@@ -28,10 +38,11 @@ describe('getInitialData()', () => {
 
   test('calls all the fns we need', async () => {
     expect(getBuildInfoAsync).not.toHaveBeenCalled();
-    expect(getSettingsAsync).not.toHaveBeenCalled();
+    expect(getMenuPreferencesAsync).not.toHaveBeenCalled();
     expect(restoreUserAsync).not.toHaveBeenCalled();
     expect(getDevSessionsAsync).not.toHaveBeenCalled();
     expect(getCrashReport).not.toHaveBeenCalled();
+    expect(consumeNavigationStateAsync).not.toHaveBeenCalled();
 
     await getInitialData();
 
@@ -41,15 +52,16 @@ describe('getInitialData()', () => {
 
     expect(getDevSessionsAsync).toHaveBeenCalled();
     expect(getBuildInfoAsync).toHaveBeenCalled();
-    expect(getSettingsAsync).toHaveBeenCalled();
+    expect(getMenuPreferencesAsync).toHaveBeenCalled();
     expect(restoreUserAsync).toHaveBeenCalled();
     expect(getCrashReport).toHaveBeenCalled();
+    expect(consumeNavigationStateAsync).toHaveBeenCalled();
   });
 
   test('queries dev sessions if logged in', async () => {
     mockRestoreUserAsync.mockResolvedValueOnce({ username: '123' });
     expect(getBuildInfoAsync).not.toHaveBeenCalled();
-    expect(getSettingsAsync).not.toHaveBeenCalled();
+    expect(getMenuPreferencesAsync).not.toHaveBeenCalled();
     expect(restoreUserAsync).not.toHaveBeenCalled();
     expect(getDevSessionsAsync).not.toHaveBeenCalled();
     expect(getCrashReport).not.toHaveBeenCalled();
@@ -61,7 +73,7 @@ describe('getInitialData()', () => {
     );
 
     expect(getBuildInfoAsync).toHaveBeenCalled();
-    expect(getSettingsAsync).toHaveBeenCalled();
+    expect(getMenuPreferencesAsync).toHaveBeenCalled();
     expect(restoreUserAsync).toHaveBeenCalled();
     expect(getCrashReport).toHaveBeenCalled();
   });

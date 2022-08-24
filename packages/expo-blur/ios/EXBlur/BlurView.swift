@@ -1,9 +1,10 @@
 // Copyright 2015-present 650 Industries. All rights reserved.
 
 import UIKit
+import React
 
 @objc(EXBlurView)
-public class BlurView: UIView {
+public class BlurView: RCTView {
   private var blurEffectView: BlurEffectView
 
   override init(frame: CGRect) {

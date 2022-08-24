@@ -1,4 +1,4 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms, Inc. and affiliates.
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
@@ -19,15 +19,16 @@ LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
 
 LOCAL_CFLAGS += -fexceptions -frtti -std=c++17 -Wall
 
-LOCAL_SHARED_LIBRARIES = libfb libfbjni libreactnativeutilsjni
+LOCAL_SHARED_LIBRARIES = libfb libfbjni libreactnativeutilsjni libruntimeexecutor
 
-LOCAL_STATIC_LIBRARIES = libcallinvoker libreactperfloggerjni libruntimeexecutor
+LOCAL_STATIC_LIBRARIES = libcallinvoker libreactperfloggerjni
 
 # Name of this module.
 LOCAL_MODULE := callinvokerholder
 
 # Compile all local c++ files
 LOCAL_SRC_FILES := $(LOCAL_PATH)/ReactCommon/CallInvokerHolder.cpp
+LOCAL_SRC_FILES := $(subst $(LOCAL_PATH)/,,$(LOCAL_SRC_FILES))
 
 # Build the files in this directory as a shared library
 include $(BUILD_STATIC_LIBRARY)
@@ -50,12 +51,13 @@ LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
 
 LOCAL_CFLAGS += -fexceptions -frtti -std=c++17 -Wall
 
-LOCAL_SHARED_LIBRARIES = libfb libfbjni libreact_nativemodule_core
+LOCAL_SHARED_LIBRARIES = libfb libfbjni libreact_nativemodule_core libjsi
 
 LOCAL_STATIC_LIBRARIES = libcallinvokerholder libreactperfloggerjni
 
 # Compile all local c++ files
 LOCAL_SRC_FILES := $(LOCAL_PATH)/ReactCommon/TurboModuleManager.cpp $(LOCAL_PATH)/ReactCommon/OnLoad.cpp
+LOCAL_SRC_FILES := $(subst $(LOCAL_PATH)/,,$(LOCAL_SRC_FILES))
 
 # Build the files in this directory as a shared library
 include $(BUILD_SHARED_LIBRARY)

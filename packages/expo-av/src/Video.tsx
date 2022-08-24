@@ -11,37 +11,20 @@ import {
   AVPlaybackSource,
   AVPlaybackStatus,
   AVPlaybackStatusToSet,
-  AVPlaybackNativeSource,
+  AVPlaybackTolerance,
 } from './AV';
 import ExpoVideoManager from './ExpoVideoManager';
 import ExponentAV from './ExponentAV';
 import ExponentVideo from './ExponentVideo';
 import {
   ExponentVideoComponent,
-  VideoFullscreenUpdate,
   VideoFullscreenUpdateEvent,
   VideoNativeProps,
-  VideoNaturalSize,
   VideoProps,
   VideoReadyForDisplayEvent,
   ResizeMode,
   VideoState,
 } from './Video.types';
-
-export {
-  ExponentVideoComponent,
-  VideoFullscreenUpdate,
-  VideoFullscreenUpdateEvent,
-  VideoNativeProps,
-  VideoNaturalSize,
-  VideoProps,
-  VideoReadyForDisplayEvent,
-  ResizeMode,
-  VideoState,
-  AVPlaybackStatus,
-  AVPlaybackStatusToSet,
-  AVPlaybackNativeSource,
-};
 
 const _STYLES = StyleSheet.create({
   base: {
@@ -177,7 +160,7 @@ class Video extends React.Component<VideoProps, VideoState> implements Playback 
   };
 
   /**
-   * Equivalent to setting URI to null.
+   * Equivalent to setting URI to `null`.
    * @hidden
    */
   unloadAsync = async (): Promise<AVPlaybackStatus> => {
@@ -185,6 +168,16 @@ class Video extends React.Component<VideoProps, VideoState> implements Playback 
       ExponentAV.unloadForVideo(tag)
     );
   };
+
+  componentWillUnmount() {
+    // Auto unload video to perform necessary cleanup safely
+    this.unloadAsync().catch(() => {
+      // Ignored rejection. Sometimes the unloadAsync code is executed when video is already unloaded.
+      // In such cases, it throws:
+      // "[Unhandled promise rejection: Error: Invalid view returned from registry,
+      //  expecting EXVideo, got: (null)]"
+    });
+  }
 
   /**
    * Set status API, only available while `isLoaded = true`.
@@ -215,7 +208,16 @@ class Video extends React.Component<VideoProps, VideoState> implements Playback 
   };
 
   /**
-   * @hidden
+   * Sets a function to be called regularly with the `AVPlaybackStatus` of the playback object.
+   *
+   * `onPlaybackStatusUpdate` will be called whenever a call to the API for this playback object completes
+   * (such as `setStatusAsync()`, `getStatusAsync()`, or `unloadAsync()`), nd will also be called at regular intervals
+   * while the media is in the loaded state.
+   *
+   * Set `progressUpdateIntervalMillis` via `setStatusAsync()` or `setProgressUpdateIntervalAsync()` to modify
+   * the interval with which `onPlaybackStatusUpdate` is called while loaded.
+   *
+   * @param onPlaybackStatusUpdate A function taking a single parameter `AVPlaybackStatus`.
    */
   setOnPlaybackStatusUpdate(onPlaybackStatusUpdate: ((status: AVPlaybackStatus) => void) | null) {
     this._onPlaybackStatusUpdate = onPlaybackStatusUpdate;
@@ -226,16 +228,16 @@ class Video extends React.Component<VideoProps, VideoState> implements Playback 
   playAsync!: () => Promise<AVPlaybackStatus>;
   playFromPositionAsync!: (
     positionMillis: number,
-    tolerances?: { toleranceMillisBefore?: number; toleranceMillisAfter?: number }
+    tolerances?: AVPlaybackTolerance
   ) => Promise<AVPlaybackStatus>;
   pauseAsync!: () => Promise<AVPlaybackStatus>;
   stopAsync!: () => Promise<AVPlaybackStatus>;
   setPositionAsync!: (
     positionMillis: number,
-    tolerances?: { toleranceMillisBefore?: number; toleranceMillisAfter?: number }
+    tolerances?: AVPlaybackTolerance
   ) => Promise<AVPlaybackStatus>;
   setRateAsync!: (rate: number, shouldCorrectPitch: boolean) => Promise<AVPlaybackStatus>;
-  setVolumeAsync!: (volume: number) => Promise<AVPlaybackStatus>;
+  setVolumeAsync!: (volume: number, audioPan?: number) => Promise<AVPlaybackStatus>;
   setIsMutedAsync!: (isMuted: boolean) => Promise<AVPlaybackStatus>;
   setIsLoopingAsync!: (isLooping: boolean) => Promise<AVPlaybackStatus>;
   setProgressUpdateIntervalAsync!: (
@@ -330,6 +332,7 @@ class Video extends React.Component<VideoProps, VideoState> implements Playback 
         ...Object.keys(status),
       ]),
       style: StyleSheet.flatten([_STYLES.base, this.props.style]),
+      videoStyle: StyleSheet.flatten([_STYLES.video, this.props.videoStyle]),
       source,
       resizeMode: nativeResizeMode,
       status,
@@ -343,7 +346,7 @@ class Video extends React.Component<VideoProps, VideoState> implements Playback 
 
     return (
       <View style={nativeProps.style} pointerEvents="box-none">
-        <ExponentVideo ref={this._nativeRef} {...nativeProps} style={_STYLES.video} />
+        <ExponentVideo ref={this._nativeRef} {...nativeProps} style={nativeProps.videoStyle} />
         {this._renderPoster()}
       </View>
     );

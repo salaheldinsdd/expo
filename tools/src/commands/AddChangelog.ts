@@ -1,13 +1,13 @@
 import { Command } from '@expo/commander';
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import inquirer from 'inquirer';
+import inquirer, { QuestionCollection } from 'inquirer';
 import path from 'path';
 
 import * as Changelogs from '../Changelogs';
 import * as Directories from '../Directories';
-import logger from '../Logger';
 import { formatChangelogEntry } from '../Formatter';
+import logger from '../Logger';
 
 type ActionOptions = {
   package: string;
@@ -27,7 +27,7 @@ async function checkOrAskForOptions(options: ActionOptions): Promise<ActionOptio
     validate: lengthValidator,
   };
 
-  const questions: inquirer.Question[] = [];
+  const questions: QuestionCollection[] = [];
   if (!options.package) {
     questions.push({
       type: 'input',
@@ -45,7 +45,7 @@ async function checkOrAskForOptions(options: ActionOptions): Promise<ActionOptio
       filter: (pullRequests) =>
         pullRequests
           .split(',')
-          .map((pullrequest) => parseInt(pullrequest, 10))
+          .map((pr) => parseInt(pr, 10))
           .filter(Boolean),
       validate: lengthValidator,
     });
@@ -79,7 +79,7 @@ async function checkOrAskForOptions(options: ActionOptions): Promise<ActionOptio
       type: 'list',
       name: 'type',
       message: 'What is the type?',
-      choices: ['bug-fix', 'new-feature', 'breaking-change', 'library-upgrade', 'notice'],
+      choices: ['bug-fix', 'new-feature', 'breaking-change', 'library-upgrade', 'notice', 'other'],
     });
   }
 
@@ -100,6 +100,8 @@ function toChangeType(type: string): Changelogs.ChangeType | null {
       return Changelogs.ChangeType.LIBRARY_UPGRADES;
     case 'notice':
       return Changelogs.ChangeType.NOTICES;
+    case 'other':
+      return Changelogs.ChangeType.OTHERS;
   }
   return null;
 }
@@ -200,7 +202,7 @@ export default (program: Command) => {
     )
     .option(
       '-t, --type <string>',
-      'Type of change that determines the section into which the entry should be added. Possible options: bug-fix | new-feature | breaking-change | library-upgrade | notice.'
+      'Type of change that determines the section into which the entry should be added. Possible options: bug-fix | new-feature | breaking-change | library-upgrade | notice | other.'
     )
     .option(
       '-v, --version [string]',
