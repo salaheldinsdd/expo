@@ -36,7 +36,8 @@ export declare class TokenResponse implements TokenResponseConfig {
     state?: string;
     idToken?: string;
     issuedAt: number;
-    constructor(response: TokenResponseConfig);
+    rawResponse?: any;
+    constructor(response: TokenResponseConfig, rawResponse?: any);
     private applyResponseConfig;
     getRequestConfig(): TokenResponseConfig;
     refreshAsync(config: Omit<TokenRequestConfig, 'grantType' | 'refreshToken'>, discovery: Pick<ServiceConfig.DiscoveryDocument, 'tokenEndpoint'>): Promise<TokenResponse>;
