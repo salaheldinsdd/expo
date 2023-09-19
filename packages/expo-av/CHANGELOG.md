@@ -205,6 +205,10 @@ _This version does not introduce any user-facing changes._
 
 - Add methods to get and set audio recording inputs. ([#15806](https://github.com/expo/expo/pull/15806) by [@computerjazz](https://github.com/computerjazz))
 
+
+### 🐛 Bug fixes
+- Fix expo-av ExoPlayer cannot adapt the video quality to user bandwidth fast enough on Android. ([#16455](https://github.com/expo/expo/pull/16455) by [@artiya4u](https://github.com/artiya4u))
+
 ### 💡 Others
 
 - Updated `@expo/config-plugins` from `4.0.2` to `4.0.14` ([#15621](https://github.com/expo/expo/pull/15621) by [@EvanBacon](https://github.com/EvanBacon))
