@@ -11,6 +11,7 @@
 ### 💡 Others
 
 - Export `requireOptionalNativeModule` and `requireNativeModule`. ([#24708](https://github.com/expo/expo/pull/24708) by [@alanjhughes](https://github.com/alanjhughes))
+- Removed the dependency on the `expo-asset` package. ([#23361](https://github.com/expo/expo/pull/23361) by [@tsapeta](https://github.com/tsapeta))
 
 ## 49.0.14 — 2023-10-05
 
