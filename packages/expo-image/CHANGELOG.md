@@ -13,6 +13,7 @@
 - [iOS] Added `autoplay` prop to control whether an animated image will automatically animate or not. ([#25008](https://github.com/expo/expo/pull/25008) by [@gkasdorf](https://github.com/gkasdorf))
 - [iOS] Added `startAnimating()` and `stopAnimating()` functions to start or stop an image's animation. ([#25008](https://github.com/expo/expo/pull/25008) by [@gkasdorf](https://github.com/gkasdorf))
 - [Android] Added `autoplay` prop and `startAnimating()` and `stopAnimating()` functions to reflect changes made to iOS in [#25008](https://github.com/expo/expo/pull/25008). ([#25124](https://github.com/expo/expo/pull/25124) by [@gkasdorf](https://github.com/gkasdorf))
+- [iOS] Fix too many image reloads and memory leaks when animating image props and image view dimensions. ([#24965](https://github.com/expo/expo/pull/24965) by [@behenate](https://github.com/behenate))
 
 ### 🐛 Bug fixes
 
@@ -20,6 +21,7 @@
 - [iOS] Fix compilation on tvOS. ([#25010](https://github.com/expo/expo/pull/25010) by [@douglowder](https://github.com/douglowder))
 - [Android] Fix incorrect `intrinsicSize` returned for SVGs. ([#25048](https://github.com/expo/expo/pull/25048) by [@behenate](https://github.com/behenate))
 - [iOS] Fixed issue where some animated images would cause the app to hang ([#25008](https://github.com/expo/expo/pull/25008) by [@gkasdorf](https://github.com/gkasdorf))
+- [iOS] Fix too many image reloads and memory leaks when animating image props and image view dimensions. ([#24965](https://github.com/expo/expo/pull/24965) by [@behenate](https://github.com/behenate))
 
 ### 💡 Others
 
