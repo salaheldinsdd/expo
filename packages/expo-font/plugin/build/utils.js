@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveFontPaths = void 0;
+exports.groupBy = exports.getFontPaths = exports.resolveFontPaths = void 0;
 const promises_1 = __importDefault(require("fs/promises"));
 const path_1 = __importDefault(require("path"));
 async function resolveFontPaths(fonts, projectRoot) {
@@ -21,3 +21,16 @@ async function resolveFontPaths(fonts, projectRoot) {
         .filter((p) => p.endsWith('.ttf') || p.endsWith('.otf'));
 }
 exports.resolveFontPaths = resolveFontPaths;
+function getFontPaths(fonts) {
+    return fonts.map((font) => (typeof font === 'string' ? font : font.path));
+}
+exports.getFontPaths = getFontPaths;
+function groupBy(array, key) {
+    return array.reduce((result, item) => {
+        const keyValue = item[key];
+        result[keyValue] = result[keyValue] || [];
+        result[keyValue].push(item);
+        return result;
+    }, {});
+}
+exports.groupBy = groupBy;
