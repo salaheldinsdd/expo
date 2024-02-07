@@ -11,6 +11,7 @@
 - Allow `renderRouter()` to accept an array of strings to quickly mock multiple empty components. ([#26651](https://github.com/expo/expo/pull/26651) by [@marklawlor](https://github.com/marklawlor))
 
 ### 🐛 Bug fixes
+- Provide isomorphic stubs for typed routes in the absence of generated types ([#24707](https://github.com/expo/expo/pull/24707) by [@helmturner](https://github.com/helmturner))
 
 - Fix issue with top-level catch-all not matching client-side routing behavior. ([#26861](https://github.com/expo/expo/pull/26861) by [@EvanBacon](https://github.com/EvanBacon))
 - Remove error hiding system. ([#26607](https://github.com/expo/expo/pull/26607) by [@EvanBacon](https://github.com/EvanBacon))
