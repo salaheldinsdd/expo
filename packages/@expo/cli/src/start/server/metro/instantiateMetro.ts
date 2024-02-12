@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import { Server as ConnectServer } from 'connect';
 import http from 'http';
 import type Metro from 'metro';
+import { RunServerOptions } from 'metro';
 import { loadConfig, resolveConfig, ConfigT } from 'metro-config';
 import { Terminal } from 'metro-core';
 import semver from 'semver';
@@ -129,7 +130,7 @@ export async function loadMetroConfigAsync(
 /** The most generic possible setup for Metro bundler. */
 export async function instantiateMetroAsync(
   metroBundler: MetroBundlerDevServer,
-  options: Omit<MetroDevServerOptions, 'logger'>,
+  options: Omit<MetroDevServerOptions, 'logger'> & Pick<RunServerOptions, 'secureServerOptions'>,
   { isExporting }: { isExporting: boolean }
 ): Promise<{
   metro: Metro.Server;
@@ -192,6 +193,7 @@ export async function instantiateMetroAsync(
       ...debugWebsocketEndpoints,
     },
     watch: !isExporting && isWatchEnabled(),
+    secureServerOptions: options.secureServerOptions,
   });
 
   prependMiddleware(middleware, (req: ServerRequest, res: ServerResponse, next: ServerNext) => {

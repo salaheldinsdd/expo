@@ -779,6 +779,7 @@ _This version does not introduce any user-facing changes._
 
 ### 🎉 New features
 
+- Add HTTPS support to Metro dev server via `npx expo start --https`. ([#18415](https://github.com/expo/expo/pull/18415) by [@EvanBacon](https://github.com/EvanBacon))
 - Handle all development session errors. ([#18499](https://github.com/expo/expo/pull/18499) by [@EvanBacon](https://github.com/EvanBacon))
 
 ### 🐛 Bug fixes

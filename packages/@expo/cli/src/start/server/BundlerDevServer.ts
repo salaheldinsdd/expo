@@ -307,6 +307,11 @@ export abstract class BundlerDevServer {
     return this.instance;
   }
 
+  /** Get the running dev server instance's protocol. */
+  public getDevServerProtocol(): 'http' | 'https' {
+    return this.instance?.location.protocol ?? 'http';
+  }
+
   /** Stop the running dev server instance. */
   async stopAsync() {
     // Stop file watching.
@@ -362,10 +367,18 @@ export abstract class BundlerDevServer {
     return this.urlCreator;
   }
 
+  private getExpoGoScheme(): 'exp' | 'exps' {
+    const instance = this.getInstance();
+    if (!instance?.location) {
+      return 'exp';
+    }
+    return instance.location.protocol === 'https' ? 'exps' : 'exp';
+  }
+
   public getNativeRuntimeUrl(opts: Partial<CreateURLOptions> = {}) {
     return this.isDevClient
       ? this.getUrlCreator().constructDevClientUrl(opts) ?? this.getDevServerUrl()
-      : this.getUrlCreator().constructUrl({ ...opts, scheme: 'exp' });
+      : this.getUrlCreator().constructUrl({ ...opts, scheme: this.getExpoGoScheme() });
   }
 
   /** Get the URL for the running instance of the dev server. */
@@ -389,7 +402,7 @@ export abstract class BundlerDevServer {
         `Cannot get the JS inspector base url - bundler[${this.name}]`
       );
     }
-    return this.getUrlCreator().constructUrl({ scheme: 'http' });
+    return this.getUrlCreator().constructUrl({ scheme: this.getDevServerProtocol() });
   }
 
   /** Get the tunnel URL from ngrok. */
@@ -457,7 +470,7 @@ export abstract class BundlerDevServer {
 
     return (
       this.getUrlCreator().constructLoadingUrl(
-        {},
+        { scheme: this.getDevServerProtocol() },
         platform === 'emulator' ? 'android' : platform === 'simulator' ? 'ios' : null
       ) ?? null
     );
@@ -466,7 +479,7 @@ export abstract class BundlerDevServer {
   public getReactDevToolsUrl(): string {
     return new URL(
       '_expo/react-devtools',
-      this.getUrlCreator().constructUrl({ scheme: 'http' })
+      this.getUrlCreator().constructUrl({ scheme: this.getDevServerProtocol() })
     ).toString();
   }
 
