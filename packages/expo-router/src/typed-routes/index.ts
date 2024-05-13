@@ -23,14 +23,18 @@ export function getWatchHandler(
 
   return async function callback({ filePath, type }: { filePath: string; type: string }) {
     // Sanity check that we are in an Expo Router project
-    if (!process.env.EXPO_ROUTER_APP_ROOT) return;
+    if (!process.env.EXPO_ROUTER_APP_ROOT) {
+      return;
+    }
 
     let shouldRegenerate = false;
     let relativePath = path.relative(process.env.EXPO_ROUTER_APP_ROOT, filePath);
     const isInsideAppRoot = !relativePath.startsWith('../');
     const basename = path.basename(relativePath);
 
-    if (!isInsideAppRoot) return;
+    if (!isInsideAppRoot) {
+      return;
+    }
 
     // require.context paths always start with './' when relative to the root
     relativePath = `./${relativePath}`;
@@ -63,7 +67,9 @@ export function getWatchHandler(
 export const regenerateDeclarations = throttle(
   (outputDir: string, ctx: RequireContextPonyFill = defaultCtx) => {
     const file = getTypedRoutesDeclarationFile(ctx);
-    if (!file) return;
+    if (!file) {
+      return;
+    }
     fs.writeFileSync(path.resolve(outputDir, './router.d.ts'), file);
   },
   100

@@ -15,8 +15,12 @@ export function getGeneratedRoutes(context: ReturnType<typeof inMemoryContext>) 
 function splitDeclarationFileIntoSections(output: string) {
   function toArray(regex: RegExp) {
     const match = output.match(regex)?.[1];
-    if (!match) return [];
-    if (match === 'never') return ['never'];
+    if (!match) {
+      return [];
+    }
+    if (match === 'never') {
+      return ['never'];
+    }
     return match.slice(1, -1).split('` | `');
   }
 
