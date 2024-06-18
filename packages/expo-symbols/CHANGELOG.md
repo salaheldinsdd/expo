@@ -6,6 +6,8 @@
 
 ### 🎉 New features
 
+- Add support for material symbols on `Android`. ([#28845](https://github.com/expo/expo/pull/28845) by [@alanjhughes](https://github.com/alanjhughes))
+
 ### 🐛 Bug fixes
 
 ### 💡 Others
