@@ -118,9 +118,15 @@ function getCssMetadata(module: JSModule): MetroModuleCSSMetadata | null {
 export function fileNameFromContents({ filepath, src }: { filepath: string; src: string }): string {
   // Decode if the path is encoded from the Metro dev server, then normalize paths for Windows support.
   const decoded = decodeURIComponent(filepath).replace(/\\/g, '/');
-  return getFileName(decoded) + '-' + hashString(src);
+  return safeFileName(getFileName(decoded)) + '-' + hashString(src);
 }
 
-export function getFileName(module: string) {
+// See: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html
+// Certain characters are URL-unsafe and should be avoided as part of output filenames
+function safeFileName(module: string) {
+  return module.replace(/[\0-\32\127&$@=;:+,?{}^%`[\]"'<>~|#]/g, '_');
+}
+
+function getFileName(module: string) {
   return path.basename(module).replace(/\.[^.]+$/, '');
 }
