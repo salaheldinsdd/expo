@@ -51,7 +51,6 @@ class VideoModule : Module() {
 
       Prop("player") { view: VideoView, player: VideoPlayer ->
         view.videoPlayer = player
-        player.prepare()
       }
 
       Prop("nativeControls") { view: VideoView, useNativeControls: Boolean ->
@@ -152,7 +151,11 @@ class VideoModule : Module() {
 
     Class(VideoPlayer::class) {
       Constructor { source: VideoSource? ->
-        VideoPlayer(activity.applicationContext, appContext, source)
+        val player = VideoPlayer(activity.applicationContext, appContext, source)
+        appContext.mainQueue.launch {
+          player.prepare()
+        }
+        return@Constructor player
       }
 
       Property("playing")
@@ -309,9 +312,7 @@ class VideoModule : Module() {
 
         appContext.mainQueue.launch {
           ref.uncommittedSource = videoSource
-          if (VideoManager.isVideoPlayerAttachedToView(ref)) {
-            ref.prepare()
-          }
+          ref.prepare()
         }
       }
 
