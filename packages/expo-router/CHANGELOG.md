@@ -33,6 +33,7 @@
 ### 💡 Others
 
 - Split up getRoutes method for SSR. ([#29232](https://github.com/expo/expo/pull/29232) by [@EvanBacon](https://github.com/EvanBacon))
+- Tweaks adn fixes for the internal Sitemap page. ([#29756](https://github.com/expo/expo/pull/29756) by [@Simek](https://github.com/Simek))
 
 ## 3.5.15 - 2024-06-03
 
