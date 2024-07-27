@@ -6,6 +6,8 @@
 
 ### 🎉 New features
 
+- Add possibility to disable the generated `exp+slug` scheme. ([#24976](https://github.com/expo/expo/pull/24976) by [@sync](https://github.com/sync))
+
 ### 🐛 Bug fixes
 
 - Fix swift and c compiler debug flags for expo dev launcher in debug configurations. ([#30159](https://github.com/expo/expo/pull/30159) by [@matinzd](https://github.com/matinzd))

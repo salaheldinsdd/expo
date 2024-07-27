@@ -6,6 +6,8 @@
 
 ### 🎉 New features
 
+- Add possibility to disable the generated `exp+slug` scheme. ([#24976](https://github.com/expo/expo/pull/24976) by [@sync](https://github.com/sync))
+
 ### 🐛 Bug fixes
 
 - Only import from `expo/config-plugins` to follow proper dependency chains. ([#30499](https://github.com/expo/expo/pull/30499) by [@byCedric](https://github.com/byCedric))
