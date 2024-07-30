@@ -1,4 +1,4 @@
-import { Android, ExpoConfig, IOS } from '@expo/config-types';
+import { Android, ExpoConfig, IOS, MacOS } from '@expo/config-types';
 import { getRuntimeVersionForSDKVersion } from '@expo/sdk-runtime-versions';
 import fs from 'fs';
 import { boolish } from 'getenv';
@@ -6,7 +6,9 @@ import path from 'path';
 import resolveFrom from 'resolve-from';
 import semver from 'semver';
 
-import { AndroidConfig, IOSConfig } from '..';
+import { getVersionCode } from '../android/Version';
+import { getBuildNumber as getBuildNumberIos } from '../ios/Version';
+import { getBuildNumber as getBuildNumberMacos } from '../macos/Version';
 
 export type ExpoConfigUpdates = Pick<
   ExpoConfig,
@@ -36,22 +38,30 @@ export function getNativeVersion(
   config: Pick<ExpoConfig, 'version'> & {
     android?: Pick<Android, 'versionCode'>;
     ios?: Pick<IOS, 'buildNumber'>;
+    macos?: Pick<MacOS, 'buildNumber'>;
   },
-  platform: 'android' | 'ios'
+  platform: 'android' | 'ios' | 'macos'
 ): string {
-  const version = IOSConfig.Version.getVersion(config);
+  // For review: We used to use the iOS getVersion() method for all platforms
+  // here, which is subtly different to getAppVersion() above as it uses ||
+  // rather than ??. I've inlined it to prevent regression.
+  const version = config.version || '1.0.0';
   switch (platform) {
     case 'ios': {
-      const buildNumber = IOSConfig.Version.getBuildNumber(config);
+      const buildNumber = getBuildNumberIos(config);
+      return `${version}(${buildNumber})`;
+    }
+    case 'macos': {
+      const buildNumber = getBuildNumberMacos(config);
       return `${version}(${buildNumber})`;
     }
     case 'android': {
-      const versionCode = AndroidConfig.Version.getVersionCode(config);
+      const versionCode = getVersionCode(config);
       return `${version}(${versionCode})`;
     }
     default: {
       throw new Error(
-        `"${platform}" is not a supported platform. Choose either "ios" or "android".`
+        `"${platform}" is not a supported platform. Choose either "ios", "macos", or "android".`
       );
     }
   }
@@ -75,8 +85,9 @@ export async function getRuntimeVersionAsync(
   config: Pick<ExpoConfig, 'version' | 'runtimeVersion' | 'sdkVersion'> & {
     android?: Pick<Android, 'versionCode' | 'runtimeVersion'>;
     ios?: Pick<IOS, 'buildNumber' | 'runtimeVersion'>;
+    macos?: Pick<MacOS, 'buildNumber' | 'runtimeVersion'>;
   },
-  platform: 'android' | 'ios'
+  platform: 'android' | 'ios' | 'macos'
 ): Promise<string | null> {
   const runtimeVersion = config[platform]?.runtimeVersion ?? config.runtimeVersion;
   if (!runtimeVersion) {
@@ -106,8 +117,9 @@ export async function resolveRuntimeVersionPolicyAsync(
   config: Pick<ExpoConfig, 'version' | 'sdkVersion'> & {
     android?: Pick<Android, 'versionCode'>;
     ios?: Pick<IOS, 'buildNumber'>;
+    macos?: Pick<MacOS, 'buildNumber'>;
   },
-  platform: 'android' | 'ios'
+  platform: 'android' | 'ios' | 'macos'
 ): Promise<string> {
   if (policy === 'appVersion') {
     return getAppVersion(config);

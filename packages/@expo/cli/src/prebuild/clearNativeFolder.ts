@@ -1,4 +1,4 @@
-import { AndroidConfig, IOSConfig, ModPlatform } from '@expo/config-plugins';
+import { AndroidConfig, AppleConfig, ModPlatform } from '@expo/config-plugins';
 import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
@@ -51,19 +51,36 @@ export async function hasRequiredAndroidFilesAsync(projectRoot: string): Promise
   }
 }
 
-/** Returns `true` if a certain subset of required iOS project files are intact. */
-export async function hasRequiredIOSFilesAsync(projectRoot: string) {
-  try {
-    // If any of the following required files are missing, then the project is malformed.
-    await Promise.all([
-      IOSConfig.Paths.getAllXcodeProjectPaths(projectRoot),
-      IOSConfig.Paths.getAllPBXProjectPaths(projectRoot),
-    ]);
-    return true;
-  } catch {
-    return false;
-  }
-}
+/**
+ * Returns `true` if a certain subset of required Apple project files are
+ * intact.
+ */
+export const hasRequiredAppleFilesAsync =
+  (applePlatform: 'ios' | 'macos') => async (projectRoot: string) => {
+    try {
+      // If any of the following required files are missing, then the project is
+      // malformed.
+      await Promise.all([
+        AppleConfig.Paths.getAllXcodeProjectPaths(applePlatform)(projectRoot),
+        AppleConfig.Paths.getAllPBXProjectPaths(applePlatform)(projectRoot),
+      ]);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+/**
+ * Returns `true` if a certain subset of required iOS project files are
+ * intact.
+ */
+export const hasRequiredIOSFilesAsync = hasRequiredAppleFilesAsync('ios');
+
+/**
+ * Returns `true` if a certain subset of required macOS project files are
+ * intact.
+ */
+export const hasRequiredMacOSFilesAsync = hasRequiredAppleFilesAsync('macos');
 
 /**
  * Filter out platforms that do not have an existing platform folder.
@@ -92,9 +109,10 @@ export async function getMalformedNativeProjectsAsync(
   projectRoot: string,
   platforms: ArbitraryPlatform[]
 ): Promise<ArbitraryPlatform[]> {
-  const VERIFIERS: Record<ArbitraryPlatform, (root: string) => Promise<boolean>> = {
+  const VERIFIERS: Record<ArbitraryPlatform, (projectRoot: string) => Promise<boolean>> = {
     android: hasRequiredAndroidFilesAsync,
-    ios: hasRequiredIOSFilesAsync,
+    ios: (projectRoot: string) => hasRequiredIOSFilesAsync(projectRoot),
+    macos: (projectRoot: string) => hasRequiredMacOSFilesAsync(projectRoot),
   };
 
   const checkablePlatforms = platforms.filter((platform) => platform in VERIFIERS);
