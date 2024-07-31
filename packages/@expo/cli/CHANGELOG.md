@@ -47,6 +47,7 @@
 - Update `tar` dependency. ([#29663](https://github.com/expo/expo/pull/29663) by [@Simek](https://github.com/Simek))
 - Removed <SDK51 type tests. ([#29612](https://github.com/expo/expo/pull/29612) by [@marklawlor](https://github.com/marklawlor))
 - Update `glob@7` to `glob@10`. ([#29898](https://github.com/expo/expo/pull/29898) by [@byCedric](https://github.com/byCedric))
+- Improve simulators texts ([#30403](https://github.com/expo/expo/pull/30403) by [@germanolira](https://github.com/germanolira))
 - Add addition Expo Router e2e tests. ([#29990](https://github.com/expo/expo/pull/29990) by [@marklawlor](https://github.com/marklawlor))
 - Add `--config-cmd` option to `export:embed` command. ([#30563](https://github.com/expo/expo/pull/30563) by [@gabrieldonadel](https://github.com/gabrieldonadel))
 - Add Router mastro test. ([#30285](https://github.com/expo/expo/pull/30285) by [@marklawlor](https://github.com/marklawlor))
