@@ -13,4 +13,5 @@ export {
   VideoMetadata,
   DRMType,
   DRMOptions,
+  BufferOptions,
 } from './VideoPlayer.types';

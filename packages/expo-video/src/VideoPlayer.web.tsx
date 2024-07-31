@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import type {
+  BufferOptions,
   PlayerError,
   VideoPlayer,
   VideoPlayerEvents,
@@ -52,6 +53,8 @@ export default class VideoPlayerWeb
   allowsExternalPlayback: boolean = false; // Not supported on web. Dummy to match the interface.
   staysActiveInBackground: boolean = false; // Not supported on web. Dummy to match the interface.
   showNowPlayingNotification: boolean = false; // Not supported on web. Dummy to match the interface.
+  bufferedPosition: number = -1; // Not supported on web. Dummy to match the interface
+  bufferOptions: BufferOptions = {} as BufferOptions; // Not supported on web. Dummy to match the interface.
 
   set muted(value: boolean) {
     this._mountedVideos.forEach((video) => {

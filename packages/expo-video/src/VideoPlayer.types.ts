@@ -8,7 +8,7 @@ export declare class VideoPlayer extends SharedObject<VideoPlayerEvents> {
    * Boolean value whether the player is currently playing.
    * > This property is get-only, use `play` and `pause` methods to control the playback.
    */
-  playing: boolean;
+  readonly playing: boolean;
 
   /**
    * Determines whether the player should automatically replay after reaching the end of the video.
@@ -44,7 +44,7 @@ export declare class VideoPlayer extends SharedObject<VideoPlayerEvents> {
    * Float value indicating the duration of the current video in seconds.
    * > This property is get-only
    */
-  duration: number;
+  readonly duration: number;
 
   /**
    * Float value between 0 and 1 representing the current volume.
@@ -73,7 +73,7 @@ export declare class VideoPlayer extends SharedObject<VideoPlayerEvents> {
    * Boolean value indicating whether the player is currently playing a live stream.
    * > This property is get-only
    */
-  isLive: boolean;
+  readonly isLive: boolean;
 
   /**
    * Indicates the current status of the player.
@@ -93,6 +93,26 @@ export declare class VideoPlayer extends SharedObject<VideoPlayerEvents> {
    * @platform android
    */
   staysActiveInBackground: boolean;
+
+  /**
+   * Float value indicating how far the player has buffered the video in seconds.
+   *
+   * This value is 0 when the player has not buffered up to the current playback time.
+   * When it's impossible to determine the buffer state (e.g. when the player isn't playing any media), this value is -1.
+   *
+   * @platform android
+   * @platform ios
+   */
+  readonly bufferedPosition: number;
+
+  /**
+   * Specifies buffer options which will be used by the player when buffering the video.
+   *
+   * > You should provide a BufferOptions object when setting this property. Setting individual buffer properties is not supported.
+   * @platform android
+   * @platform ios
+   */
+  bufferOptions: BufferOptions;
 
   /**
    * Initializes a new video player instance with the given source.
@@ -272,4 +292,59 @@ export type DRMOptions = {
    * @platform ios
    */
   base64CertificateData?: string;
+};
+
+/**
+ * Specifies buffer options which will be used by the player when buffering the video.
+ *
+ * @platform android
+ * @platform ios
+ */
+export type BufferOptions = {
+  /**
+   * The duration in seconds which determines how much media the player should buffer ahead of the current playback time.
+   *
+   * On iOS when set to 0 the player will automatically decide appropriate buffer duration.
+   *
+   * Equivalent to [`AVPlayerItem.preferredForwardBufferDuration`](https://developer.apple.com/documentation/avfoundation/avplayeritem/1643630-preferredforwardbufferduration).
+   * @default Android: 20, iOS: 0
+   * @platform android
+   * @platform ios
+   */
+  readonly preferredForwardBufferDuration?: number;
+
+  /**
+   * A Boolean value that indicates whether the player should automatically delay playback in order to minimize stalling.
+   *
+   * Equivalent to [`AVPlayer.automaticallyWaitsToMinimizeStalling`](https://developer.apple.com/documentation/avfoundation/avplayer/1643482-automaticallywaitstominimizestal).
+   * @default true
+   * @platform ios
+   */
+  readonly waitsToMinimizeStalling?: boolean;
+
+  /**
+   * Minimum duration of the buffer in seconds required to continue playing after the player has been paused or started buffering.
+   *
+   * > This property will be ignored if `preferredForwardBufferDuration` is lower.
+   * @default 2
+   * @platform android
+   */
+  readonly minBufferForPlayback?: number;
+
+  /**
+   * The maximum number of bytes that the player can buffer from the network.
+   * When 0 the player will automatically decide appropriate buffer size.
+   *
+   * @default 0
+   * @platform android
+   */
+  readonly maxBufferBytes?: number | null;
+
+  /**
+   * A Boolean value which determines whether the player should prioritize time over size when buffering media.
+   *
+   * @default false
+   * @platform android
+   */
+  readonly prioritizeTimeOverSizeThreshold?: boolean;
 };
