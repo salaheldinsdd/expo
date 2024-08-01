@@ -27,6 +27,7 @@
 - Fix resolver fields for SSR + native platforms. ([#29701](https://github.com/expo/expo/pull/29701) by [@EvanBacon](https://github.com/EvanBacon))
 - Fix assetId for static web assets. ([#29686](https://github.com/expo/expo/pull/29686) by [@EvanBacon](https://github.com/EvanBacon))
 - Upgrade minimum required Atlas version to `0.3.11` fixing HMR reloads. ([#30424](https://github.com/expo/expo/pull/30424) by [@byCedric](https://github.com/byCedric))
+- Support making templates for React Native macOS, and rename project name inside `contents.xcworkspacedata` files ([#30309](https://github.com/expo/expo/pull/30309) by [@shirakaba](https://github.com/shirakaba))
 
 ### 💡 Others
 
