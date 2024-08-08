@@ -61,6 +61,7 @@ export interface VideoViewProps extends ViewProps {
    * A callback to call after the video player enters Picture in Picture (PiP) mode.
    * @platform android
    * @platform ios 14+
+   * @platform web
    */
   onPictureInPictureStart?: () => void;
 
@@ -68,6 +69,7 @@ export interface VideoViewProps extends ViewProps {
    * A callback to call after the video player exits Picture in Picture (PiP) mode.
    * @platform android
    * @platform ios 14+
+   * @platform web
    */
   onPictureInPictureStop?: () => void;
 
@@ -78,6 +80,7 @@ export interface VideoViewProps extends ViewProps {
    *
    * @default false
    * @platform ios 14+
+   * @platform web
    */
   allowsPictureInPicture?: boolean;
 
