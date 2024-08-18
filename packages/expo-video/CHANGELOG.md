@@ -2,7 +2,7 @@
 
 ## Unpublished
 
-- [Web] Add support for playsInline. ([#31033](https://github.com/expo/expo/pull/31033) by [@hirbod](https://github.com/hirbod))
+- [Web] Add support for `playsInline` attribute. ([#31033](https://github.com/expo/expo/pull/31033) by [@hirbod](https://github.com/hirbod))
 
 ### 🛠 Breaking changes
 
