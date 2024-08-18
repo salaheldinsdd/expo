@@ -23,8 +23,8 @@ export interface VideoViewProps extends ViewProps {
   nativeControls?: boolean;
 
   /**
-   * Determines whether the video should play inline or not.
-   * This property is relevant on mobile web browsers.
+   * Determines whether the video is to be played "inline", that is, within the element's playback area. Note that the absence of this attribute does not imply that the video will always be played in fullscreen.
+   * This property is relevant only on mobile web browsers.
    * @default true
    * @platform web
    */
