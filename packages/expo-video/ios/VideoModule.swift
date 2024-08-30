@@ -7,16 +7,15 @@ public final class VideoModule: Module {
     Name("ExpoVideo")
 
     Function("isPictureInPictureSupported") { () -> Bool in
-      if #available(iOS 13.4, tvOS 14.0, *) {
-        return AVPictureInPictureController.isPictureInPictureSupported()
-      }
-      return false
+      return AVPictureInPictureController.isPictureInPictureSupported()
     }
 
     View(VideoView.self) {
       Events(
         "onPictureInPictureStart",
-        "onPictureInPictureStop"
+        "onPictureInPictureStop",
+        "onFullscreenEnter",
+        "onFullscreenExit"
       )
 
       Prop("player") { (view, player: VideoPlayer?) in
@@ -72,6 +71,25 @@ public final class VideoModule: Module {
         #endif
       }
 
+      Prop("allowsVideoFrameAnalysis") { (view, allowsVideoFrameAnalysis: Bool?) in
+        #if !os(tvOS)
+        if #available(iOS 16.0, macCatalyst 18.0, *) {
+          let newValue = allowsVideoFrameAnalysis ?? true
+
+          view.playerViewController.allowsVideoFrameAnalysis = newValue
+
+          // Setting the `allowsVideoFrameAnalysis` to false after the scanning was already perofrmed doesn't update the UI.
+          // We can force the desired behaviour by quickly toggling the property. Setting it to true clears existing requests,
+          // which updates the UI, hiding the button, then setting it to false before it detects any text keeps it in the desired state.
+          // Tested in iOS 17.5
+          if !newValue {
+            view.playerViewController.allowsVideoFrameAnalysis = true
+            view.playerViewController.allowsVideoFrameAnalysis = false
+          }
+        }
+        #endif
+      }
+
       AsyncFunction("enterFullscreen") { view in
         view.enterFullscreen()
       }
@@ -110,8 +128,11 @@ public final class VideoModule: Module {
         player.isMuted = muted
       }
 
-      Property("currentTime") { player -> Double in
-        return player.pointer.currentTime().seconds
+      Property("allowsExternalPlayback") { player -> Bool in
+        return player.pointer.allowsExternalPlayback
+      }
+      .set { (player, allowsExternalPlayback: Bool) in
+        player.pointer.allowsExternalPlayback = allowsExternalPlayback
       }
 
       Property("staysActiveInBackground") { player -> Bool in
@@ -129,7 +150,8 @@ public final class VideoModule: Module {
       }
 
       Property("currentTime") { player -> Double in
-        return player.pointer.currentTime().seconds
+        let currentTime = player.pointer.currentTime().seconds
+        return currentTime.isNaN ? 0 : currentTime
       }
       .set { (player, time: Double) in
         // Only clamp the lower limit, AVPlayer automatically clamps the upper limit.
@@ -138,8 +160,34 @@ public final class VideoModule: Module {
         player.pointer.seek(to: timeToSeek, toleranceBefore: .zero, toleranceAfter: .zero)
       }
 
+      Property("currentLiveTimestamp") { player -> Double? in
+        guard let currentDate = player.pointer.currentItem?.currentDate() else {
+          return nil
+        }
+        let timeIntervalSince = currentDate.timeIntervalSince1970
+        return Double(timeIntervalSince * 1000)
+      }
+
+      Property("currentOffsetFromLive") { player -> Double? in
+        guard let currentDate = player.pointer.currentItem?.currentDate() else {
+          return nil
+        }
+        let timeIntervalSince = currentDate.timeIntervalSince1970
+        let unixTime = Date().timeIntervalSince1970
+        return unixTime - timeIntervalSince
+      }
+
+      Property("targetOffsetFromLive") { player -> Double in
+        return player.pointer.currentItem?.configuredTimeOffsetFromLive.seconds ?? 0
+      }
+      .set { (player, timeOffset: Double) in
+        let timeOffset = CMTime(seconds: timeOffset, preferredTimescale: .max)
+        player.pointer.currentItem?.configuredTimeOffsetFromLive = timeOffset
+      }
+
       Property("duration") { player -> Double in
-        return player.pointer.currentItem?.duration.seconds ?? 0
+        let duration = player.pointer.currentItem?.duration.seconds ?? 0
+        return duration.isNaN ? 0 : duration
       }
 
       Property("playbackRate") { player -> Float in

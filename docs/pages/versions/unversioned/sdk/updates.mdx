@@ -23,7 +23,7 @@ The `expo-updates` library can be automatically configured using [EAS Update](/e
 
 Alternatively, it is also possible to configure the `expo-updates` library manually in cases where a different remote update service is required or configuration is only specified in native files.
 
-<Collapsible summary="Manual installation and configuration">
+<Collapsible summary="Manual installation, configuration, and custom remote update services">
 
 <APIInstallSection hideBareInstructions />
 
@@ -34,7 +34,7 @@ If using [app config](/workflow/configuration/) for configuration, this library 
 - [`updates.url`](/versions/latest/config/app/#updates): a URL of a remote service implementing the [Expo Updates protocol](/technical-specs/expo-updates-1/)
 - [`runtimeVersion`](/versions/latest/config/app/#runtimeversion): a [runtime version](/eas-update/runtime-versions/)
 
-The remote service must implement the [Expo Updates protocol](/technical-specs/expo-updates-1/). [EAS Update](/eas-update/introduction) implements this protocol for you, and it is also possible to use this library with a custom server.
+The remote service must implement the [Expo Updates protocol](/technical-specs/expo-updates-1/). [EAS Update](/eas-update/introduction) is one such service, but it is also possible to use this library with a custom server.
 
 <BoxLink
   title="Custom Expo Updates Server"
@@ -144,11 +144,11 @@ import * as Updates from 'expo-updates';
 
 ## Error codes
 
-| Code                              | Description                                                                                                                                                                                                                                                    |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ERR_UPDATES_DISABLED`            | A method call was attempted when the Updates library was disabled, or the application was running in development mode                                                                                                                                          |
-| `ERR_UPDATES_RELOAD`              | An error occurred when trying to reload the application and it could not be reloaded. For bare workflow apps, double check the setup steps for this library to ensure it has been installed correctly and the proper native initialization methods are called. |
-| `ERR_UPDATES_CHECK`               | An unexpected error occurred when trying to check for new updates. Check the error message for more information.                                                                                                                                               |
-| `ERR_UPDATES_FETCH`               | An unexpected error occurred when trying to fetch a new update. Check the error message for more information.                                                                                                                                                  |
-| `ERR_UPDATES_READ_LOGS`           | An unexpected error occurred when trying to read log entries. Check the error message for more information.                                                                                                                                                    |
-| `ERR_NOT_AVAILABLE_IN_DEV_CLIENT` | A method is not available when running in a development build. A release build should be used to test this method.                                                                                                                                             |
+| Code                              | Description                                                                                                                                                                                                                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ERR_UPDATES_DISABLED`            | A method call was attempted when the Updates library was disabled, or the application was running in development mode                                                                                                                                              |
+| `ERR_UPDATES_RELOAD`              | An error occurred when trying to reload the application and it could not be reloaded. For bare React Native apps, double-check the setup steps for this library to ensure it has been installed correctly and the proper native initialization methods are called. |
+| `ERR_UPDATES_CHECK`               | An unexpected error occurred when trying to check for new updates. Check the error message for more information.                                                                                                                                                   |
+| `ERR_UPDATES_FETCH`               | An unexpected error occurred when trying to fetch a new update. Check the error message for more information.                                                                                                                                                      |
+| `ERR_UPDATES_READ_LOGS`           | An unexpected error occurred when trying to read log entries. Check the error message for more information.                                                                                                                                                        |
+| `ERR_NOT_AVAILABLE_IN_DEV_CLIENT` | A method is not available when running in a development build. A release build should be used to test this method.                                                                                                                                                 |

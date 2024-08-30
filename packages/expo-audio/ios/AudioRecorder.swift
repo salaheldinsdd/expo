@@ -1,11 +1,10 @@
 import ExpoModulesCore
-import Foundation
 
 private let recordingStatus = "onRecordingStatusUpdate"
 
 class AudioRecorder: SharedRef<AVAudioRecorder>, RecordingResultHandler {
-  var id = UUID().uuidString
-  private lazy var delegate = {
+  let id = UUID().uuidString
+  private lazy var recordingDelegate = {
     RecordingDelegate(resultHandler: self)
   }()
   var startTimestamp = 0
@@ -13,30 +12,30 @@ class AudioRecorder: SharedRef<AVAudioRecorder>, RecordingResultHandler {
 
   override init(_ pointer: AVAudioRecorder) {
     super.init(pointer)
-    pointer.delegate = delegate
+    pointer.delegate = recordingDelegate
 
     do {
       try AVAudioSession.sharedInstance().setCategory(.playAndRecord)
     } catch {
       print("Failed to set recording category")
     }
-    pointer.prepareToRecord()
+    ref.prepareToRecord()
   }
 
   var isRecording: Bool {
-    pointer.isRecording
+    ref.isRecording
   }
 
   var currentTime: Double {
-    pointer.currentTime * 1000
+    ref.currentTime * 1000
   }
 
   var deviceCurrentTime: Int {
-    Int(pointer.deviceCurrentTime * 1000)
+    Int(ref.deviceCurrentTime * 1000)
   }
 
   var uri: String {
-    pointer.url.absoluteString
+    ref.url.absoluteString
   }
 
   func getRecordingStatus() -> [String: Any] {
@@ -47,12 +46,13 @@ class AudioRecorder: SharedRef<AVAudioRecorder>, RecordingResultHandler {
       "canRecord": true,
       "isRecording": isRecording,
       "durationMillis": duration,
-      "mediaServicesDidReset": false
+      "mediaServicesDidReset": false,
+      "url": ref.url
     ]
 
-    if pointer.isMeteringEnabled {
-      pointer.updateMeters()
-      let currentLevel = pointer.averagePower(forChannel: 0)
+    if ref.isMeteringEnabled {
+      ref.updateMeters()
+      let currentLevel = ref.averagePower(forChannel: 0)
       result["metering"] = currentLevel
     }
 
@@ -64,6 +64,7 @@ class AudioRecorder: SharedRef<AVAudioRecorder>, RecordingResultHandler {
       "id": id,
       "isFinished": true,
       "hasError": false,
+      "error": nil,
       "url": recorder.url
     ])
   }
@@ -76,5 +77,10 @@ class AudioRecorder: SharedRef<AVAudioRecorder>, RecordingResultHandler {
       "error": error?.localizedDescription,
       "url": nil
     ])
+  }
+
+  override func sharedObjectWillRelease() {
+    AudioComponentRegistry.shared.remove(self)
+    ref.stop()
   }
 }

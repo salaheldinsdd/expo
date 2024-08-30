@@ -8,6 +8,8 @@
 
 ### 🛠 Breaking changes
 
+- Bumped iOS deployment target to 15.1. ([#30840](https://github.com/expo/expo/pull/30840) by [@tsapeta](https://github.com/tsapeta))
+
 ### 🎉 New features
 
 ### 🐛 Bug fixes
@@ -15,8 +17,15 @@
 - Fixed an Android issue where creating a contact with a birthday was not saved. ([#30131](https://github.com/expo/expo/issues/30131) by [@Eric013](https://github.com/Eric013)) ([#30132](https://github.com/expo/expo/pull/30132) by [@Eric013](https://github.com/Eric013))
 - Fixed an issue where only paths of urls were stored in contacts and social profiles were only stored when all fields were filled. ([#29199](https://github.com/expo/expo/pull/29199) by [@mlecoq](https://github.com/mlecoq))
 - Fixed an iOS issue where the Cancel button is not visible on the unknown contact form. ([#29555](https://github.com/expo/expo/pull/29555) by [@Tug](https://github.com/Tug))
+- Add missing `react-native` peer dependencies for isolated modules. ([#30465](https://github.com/expo/expo/pull/30465) by [@byCedric](https://github.com/byCedric))
 
 ### 💡 Others
+
+## 13.0.5 - 2024-07-22
+
+### 💡 Others
+
+- Handle new permission status on `iOS` 18. ([#29639](https://github.com/expo/expo/pull/29639) by [@alanjhughes](https://github.com/alanjhughes))
 
 ## 13.0.4 - 2024-06-10
 

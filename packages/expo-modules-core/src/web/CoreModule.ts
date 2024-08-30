@@ -5,9 +5,9 @@ import type {
 } from '../ts-declarations/EventEmitter';
 import type { NativeModule as NativeModuleType } from '../ts-declarations/NativeModule';
 import type { SharedObject as SharedObjectType } from '../ts-declarations/SharedObject';
-import uuid from '../uuid';
+import type { SharedRef as SharedRefType } from '../ts-declarations/SharedRef';
 
-class EventEmitter<TEventsMap extends EventsMap> implements EventEmitterType {
+export class EventEmitter<TEventsMap extends EventsMap> implements EventEmitterType {
   private listeners?: Map<keyof TEventsMap, Set<Function>>;
 
   addListener<EventName extends keyof TEventsMap>(
@@ -90,26 +90,15 @@ export class NativeModule<TEventsMap extends Record<never, never>>
   __expo_module_name__?: string;
 }
 
-class SharedObject<TEventsMap extends Record<never, never>>
+export class SharedObject<TEventsMap extends Record<never, never>>
   extends EventEmitter<TEventsMap>
   implements SharedObjectType
 {
   release(): void {
-    throw new Error('Method not implemented.');
+    // no-op on Web, but subclasses can override it if needed.
   }
 }
 
-globalThis.expo = {
-  EventEmitter,
-  NativeModule,
-  SharedObject,
-  modules: {},
-  uuidv4: uuid.v4,
-  uuidv5: uuid.v5,
-  getViewConfig: () => {
-    throw new Error('Method not implemented.');
-  },
-  reloadAppAsync: async () => {
-    window.location.reload();
-  },
-};
+export class SharedRef<TEventsMap extends Record<never, never>>
+  extends SharedObject<TEventsMap>
+  implements SharedRefType {}

@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { shadows, theme, typography } from '@expo/styleguide';
+import { shadows, theme, typography, mergeClasses } from '@expo/styleguide';
 import { borderRadius, breakpoints, spacing } from '@expo/styleguide-base';
 import { CodeSquare01Icon } from '@expo/styleguide-icons/outline/CodeSquare01Icon';
 import { slug } from 'github-slugger';
@@ -28,7 +28,6 @@ import {
 import { APISectionPlatformTags } from '~/components/plugins/api/APISectionPlatformTags';
 import { Callout } from '~/ui/components/Callout';
 import { Cell, HeaderCell, Row, Table, TableHead } from '~/ui/components/Table';
-import { tableWrapperStyle } from '~/ui/components/Table/Table';
 import { Tag } from '~/ui/components/Tag';
 import {
   A,
@@ -134,7 +133,6 @@ const nonLinkableTypes = [
   'Parameters',
   'ParsedQs',
   'ServiceActionResult',
-  'SharedObject',
   'T',
   'TaskOptions',
   'TEventsMap',
@@ -191,7 +189,8 @@ const hardcodedTypeLinks: Record<string, string> = {
     'https://www.typescriptlang.org/docs/handbook/utility-types.html#excludeuniontype-excludedmembers',
   ExpoConfig:
     'https://github.com/expo/expo/blob/main/packages/%40expo/config-types/src/ExpoConfig.ts',
-  File: 'https://developer.mozilla.org/en-US/docs/Web/API/File',
+  // Conflicts with the File class from expo-file-system@next. TODO: Fix this.
+  // File: 'https://developer.mozilla.org/en-US/docs/Web/API/File',
   FileList: 'https://developer.mozilla.org/en-US/docs/Web/API/FileList',
   IterableIterator:
     'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator',
@@ -222,9 +221,40 @@ const hardcodedTypeLinks: Record<string, string> = {
   WebGLTexture: 'https://developer.mozilla.org/en-US/docs/Web/API/WebGLTexture',
 };
 
-const sdkVersionHardcodedTypeLinks: Record<string, Record<string, string>> = {
+const sdkVersionHardcodedTypeLinks: Record<string, Record<string, string | null>> = {
   'v49.0.0': {
     Manifest: '/versions/v49.0.0/sdk/constants/#manifest',
+    SharedObject: null,
+  },
+  'v50.0.0': {
+    SharedObject: null,
+  },
+  '51.0.0': {
+    SharedObject: null,
+  },
+  'v52.0.0': {
+    EventEmitter: '/versions/v52.0.0/sdk/expo/#eventemitter',
+    NativeModule: '/versions/v52.0.0/sdk/expo/#nativemodule',
+    SharedObject: '/versions/v52.0.0/sdk/expo/#sharedobject',
+    SharedRef: '/versions/v52.0.0/sdk/expo/#sharedref',
+  },
+  'v53.0.0': {
+    EventEmitter: '/versions/v53.0.0/sdk/expo/#eventemitter',
+    NativeModule: '/versions/v53.0.0/sdk/expo/#nativemodule',
+    SharedObject: '/versions/v53.0.0/sdk/expo/#sharedobject',
+    SharedRef: '/versions/v53.0.0/sdk/expo/#sharedref',
+  },
+  latest: {
+    EventEmitter: '/versions/latest/sdk/expo/#eventemitter',
+    NativeModule: '/versions/latest/sdk/expo/#nativemodule',
+    SharedObject: '/versions/latest/sdk/expo/#sharedobject',
+    SharedRef: '/versions/latest/sdk/expo/#sharedref',
+  },
+  unversioned: {
+    EventEmitter: '/versions/unversioned/sdk/expo/#eventemitter',
+    NativeModule: '/versions/unversioned/sdk/expo/#nativemodule',
+    SharedObject: '/versions/unversioned/sdk/expo/#sharedobject',
+    SharedRef: '/versions/unversioned/sdk/expo/#sharedref',
   },
 };
 
@@ -240,7 +270,7 @@ const renderWithLink = ({
 }: {
   name: string;
   type?: string;
-  typePackage: string | undefined;
+  typePackage?: string;
   sdkVersion: string;
 }) => {
   const replacedName = replaceableTypes[name] ?? name;
@@ -258,20 +288,19 @@ const renderWithLink = ({
     );
   }
 
-  return nonLinkableTypes.includes(replacedName) ? (
-    replacedName + (type === 'array' ? '[]' : '')
-  ) : (
-    <A
-      href={
-        sdkVersionHardcodedTypeLinks[sdkVersion]?.[replacedName] ??
-        hardcodedTypeLinks[replacedName] ??
-        `#${replacedName.toLowerCase()}`
-      }
-      key={`type-link-${replacedName}`}>
-      {replacedName}
-      {type === 'array' && '[]'}
-    </A>
-  );
+  const hardcodedHref =
+    sdkVersionHardcodedTypeLinks[sdkVersion]?.[replacedName] ?? hardcodedTypeLinks[replacedName];
+
+  if (hardcodedHref || !nonLinkableTypes.includes(replacedName)) {
+    return (
+      <A href={hardcodedHref ?? `#${replacedName.toLowerCase()}`} key={`type-link-${replacedName}`}>
+        {replacedName}
+        {type === 'array' && '[]'}
+      </A>
+    );
+  }
+
+  return replacedName + (type === 'array' ? '[]' : '');
 };
 
 const renderUnion = (types: TypeDefinitionData[], { sdkVersion }: { sdkVersion: string }) =>
@@ -305,6 +334,7 @@ export const resolveTypeName = (
     operator,
     objectType,
     indexType,
+    target,
   } = typeDefinition;
 
   try {
@@ -455,9 +485,18 @@ export const resolveTypeName = (
       }
       return `${objectType?.name}['${indexType?.value}']`;
     } else if (type === 'typeOperator') {
+      if (target && operator && ['readonly', 'keyof'].includes(operator)) {
+        return (
+          <>
+            {operator} {resolveTypeName(target, sdkVersion)}
+          </>
+        );
+      }
       return operator || 'undefined';
     } else if (type === 'intrinsic') {
       return name || 'undefined';
+    } else if (type === 'rest' && elementType) {
+      return `...${resolveTypeName(elementType, sdkVersion)}`;
     } else if (value === null) {
       return 'null';
     }
@@ -761,7 +800,7 @@ export const CommentTextBlock = ({
 
   const examples = getAllTagData('example', comment);
   const exampleText = examples?.map((example, index) => (
-    <div key={'example-' + index} className={ELEMENT_SPACING}>
+    <div key={'example-' + index} className={mergeClasses(ELEMENT_SPACING, 'last:[&>*]:mb-0')}>
       {inlineHeaders ? (
         <DEMI theme="secondary" className="flex flex-row gap-1.5 items-center mb-1.5">
           <CodeSquare01Icon className="icon-sm" />
@@ -789,7 +828,12 @@ export const CommentTextBlock = ({
 
   return (
     <>
-      {includePlatforms && hasPlatforms && <APISectionPlatformTags comment={comment} />}
+      {includePlatforms && hasPlatforms && (
+        <APISectionPlatformTags
+          comment={comment}
+          prefix={emptyCommentFallback ? 'Only for:' : undefined}
+        />
+      )}
       {paramTags && (
         <>
           <DEMI theme="secondary">Only for:&ensp;</DEMI>
@@ -832,14 +876,13 @@ export function getPossibleComponentPropsNames(name?: string, children: PropData
 }
 
 export const STYLES_APIBOX = css({
-  borderRadius: borderRadius.md,
+  borderRadius: borderRadius.lg,
   borderWidth: 1,
   borderStyle: 'solid',
-  borderColor: theme.border.default,
+  borderColor: theme.border.secondary,
   padding: spacing[5],
   boxShadow: shadows.xs,
   marginBottom: spacing[6],
-  overflowX: 'hidden',
 
   h3: {
     marginBottom: spacing[2.5],
@@ -858,7 +901,7 @@ export const STYLES_APIBOX = css({
     marginBottom: 0,
   },
 
-  [`.css-${tableWrapperStyle.name}`]: {
+  [`.table-wrapper`]: {
     boxShadow: 'none',
     marginBottom: 0,
   },
@@ -879,10 +922,10 @@ export const STYLES_APIBOX_NESTED = css({
 });
 
 export const STYLES_APIBOX_WRAPPER = css({
-  marginBottom: spacing[4],
+  marginBottom: spacing[3.5],
   padding: `${spacing[4]}px ${spacing[5]}px 0`,
 
-  [`.css-${tableWrapperStyle.name}:last-child`]: {
+  [`.table-wrapper:last-child`]: {
     marginBottom: spacing[4],
   },
 });
@@ -901,6 +944,10 @@ export const STYLES_NESTED_SECTION_HEADER = css({
     marginBottom: 0,
     marginTop: 0,
     color: theme.text.secondary,
+  },
+
+  [`@media screen and (max-width: ${breakpoints.medium + 124}px)`]: {
+    marginInline: -spacing[4],
   },
 });
 

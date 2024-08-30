@@ -20,6 +20,7 @@ import { expoRouterBabelPlugin } from './expo-router-plugin';
 import { expoInlineEnvVars } from './inline-env-vars';
 import { lazyImports } from './lazyImports';
 import { environmentRestrictedReactAPIsPlugin } from './restricted-react-api-plugin';
+import { expoUseDomDirectivePlugin } from './use-dom-directive-plugin';
 
 type BabelPresetExpoPlatformOptions = {
   /** Enable or disable adding the Reanimated plugin by default. @default `true` */
@@ -183,6 +184,11 @@ function babelPresetExpo(api: ConfigAPI, options: BabelPresetExpoOptions = {}): 
     // Give users the ability to opt-out of the feature, per-platform.
     platformOptions['react-compiler'] !== false
   ) {
+    if (!hasModule('babel-plugin-react-compiler')) {
+      throw new Error(
+        'The `babel-plugin-react-compiler` must be installed before you can use React Compiler.'
+      );
+    }
     extraPlugins.push([
       require('babel-plugin-react-compiler'),
       {
@@ -203,17 +209,24 @@ function babelPresetExpo(api: ConfigAPI, options: BabelPresetExpoOptions = {}): 
     // `@react-native/babel-preset` configures this plugin with `{ loose: true }`, which breaks all
     // getters and setters in spread objects. We need to add this plugin ourself without that option.
     // @see https://github.com/expo/expo/pull/11960#issuecomment-887796455
-    extraPlugins.push([require('@babel/plugin-transform-object-rest-spread'), { loose: false }]);
-  } else if (!isServerEnv) {
-    // This is added back on hermes to ensure the react-jsx-dev plugin (`@babel/preset-react`) works as expected when
-    // JSX is used in a function body. This is technically not required in production, but we
-    // should retain the same behavior since it's hard to debug the differences.
-    extraPlugins.push(require('@babel/plugin-transform-parameters'));
+    extraPlugins.push([
+      require('@babel/plugin-transform-object-rest-spread'),
+      // Assume no dependence on getters or evaluation order. See https://github.com/babel/babel/pull/11520
+      { loose: true, useBuiltIns: true },
+    ]);
+  } else {
+    if (platform !== 'web' && !isServerEnv) {
+      // This is added back on hermes to ensure the react-jsx-dev plugin (`@babel/preset-react`) works as expected when
+      // JSX is used in a function body. This is technically not required in production, but we
+      // should retain the same behavior since it's hard to debug the differences.
+      extraPlugins.push(require('@babel/plugin-transform-parameters'));
+    }
   }
 
-  const inlines: Record<string, boolean | string> = {
+  const inlines: Record<string, null | boolean | string> = {
     'process.env.EXPO_OS': platform,
     // 'typeof document': isServerEnv ? 'undefined' : 'object',
+    'process.env.EXPO_SERVER': !!isServerEnv,
   };
 
   // `typeof window` is left in place for native + client environments.
@@ -282,6 +295,9 @@ function babelPresetExpo(api: ConfigAPI, options: BabelPresetExpoOptions = {}): 
     extraPlugins.push(reactClientReferencesPlugin);
 
     extraPlugins.push(environmentRestrictedReactAPIsPlugin);
+  } else {
+    // DOM components must run after "use client" and only in client environments.
+    extraPlugins.push(expoUseDomDirectivePlugin);
   }
 
   // This plugin is fine to run whenever as the server-only imports were introduced as part of RSC and shouldn't be used in any client code.
@@ -295,6 +311,10 @@ function babelPresetExpo(api: ConfigAPI, options: BabelPresetExpoOptions = {}): 
         skipEnvCheck: true,
       },
     ]);
+  }
+
+  if (platformOptions.disableImportExportTransform) {
+    extraPlugins.push([require('./detect-dynamic-exports').detectDynamicExports]);
   }
 
   // Use the simpler babel preset for web and server environments (both web and native SSR).
