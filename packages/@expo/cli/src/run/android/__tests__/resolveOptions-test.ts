@@ -52,13 +52,14 @@ describe(resolveOptionsAsync, () => {
         device: 'search',
         install: true,
         port: 8081,
-        variant: 'firstSecondThird',
+        variant: 'firstSecondThirdDebug',
+        appIdSuffix: 'demo',
       })
     ).toEqual({
-      apkVariantDirectory: '/android/app/build/outputs/apk/second/third/first',
+      apkVariantDirectory: '/android/app/build/outputs/apk/firstSecondThird/debug',
       appName: 'app',
       buildCache: true,
-      buildType: 'first',
+      buildType: 'debug',
       architectures: '',
       device: {
         device: {
@@ -66,14 +67,14 @@ describe(resolveOptionsAsync, () => {
           pid: '123',
         },
       },
-      flavors: ['second', 'third'],
+      flavors: ['first', 'second', 'third'],
       install: true,
       launchActivity: 'com.bacon.mydevicefamilyproject/.MainActivity',
       mainActivity: '.MainActivity',
-      packageName: 'com.bacon.mydevicefamilyproject',
+      packageName: 'com.bacon.mydevicefamilyproject.demo',
       port: 8081,
       shouldStartBundler: true,
-      variant: 'firstSecondThird',
+      variant: 'firstSecondThirdDebug',
     });
   });
 });
