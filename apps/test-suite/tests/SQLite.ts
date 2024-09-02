@@ -2,6 +2,7 @@ import { Asset } from 'expo-asset';
 import * as FS from 'expo-file-system';
 import * as SQLite from 'expo-sqlite';
 import path from 'path';
+import { Platform } from 'react-native';
 import semver from 'semver';
 
 export const name = 'SQLite';
@@ -881,6 +882,91 @@ CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY NOT NULL, name VAR
       }
       expect(error).not.toBeNull();
     });
+  });
+
+  describe('Custom path', () => {
+    beforeAll(async () => {
+      const dir = FS.cacheDirectory + 'SQLite';
+
+      await FS.deleteAsync(dir, { idempotent: true });
+      await FS.makeDirectoryAsync(dir, { intermediates: true });
+    });
+
+    it('should create and delete a database in the cache directory', async () => {
+      const dbDirectory = FS.cacheDirectory + 'SQLite';
+      const dbUri = dbDirectory + '/test.db';
+
+      const db = await SQLite.openDatabaseAsync('test.db', {}, dbDirectory);
+      await db.execAsync(`
+DROP TABLE IF EXISTS users;
+CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY NOT NULL, name VARCHAR(64), k INT, j REAL);
+INSERT INTO users (name, k, j) VALUES ('Tim Duncan', 1, 23.4);
+`);
+      const results = await db.getAllAsync<UserEntity>('SELECT * FROM users');
+      expect(results.length).toBe(1);
+      await db.closeAsync();
+
+      let fileInfo = await FS.getInfoAsync(dbUri);
+      expect(fileInfo.exists).toBeTruthy();
+
+      await SQLite.deleteDatabaseAsync('test.db', dbDirectory);
+      fileInfo = await FS.getInfoAsync(dbUri);
+      expect(fileInfo.exists).toBeFalsy();
+    });
+
+    if (Platform.OS === 'ios') {
+      describe('iOS App Group', () => {
+        beforeAll(async () => {
+          const sharedContainerRoot =
+            await FS.getSharedContainerUriAsync('group.dev.expo.Payments');
+          const sharedContainerDir = sharedContainerRoot + 'SQLite';
+          await FS.deleteAsync(sharedContainerDir, { idempotent: true });
+          await FS.makeDirectoryAsync(sharedContainerDir, { intermediates: true });
+          await FS.deleteAsync(FS.documentDirectory + 'SQLite', { idempotent: true });
+          await FS.makeDirectoryAsync(FS.documentDirectory + 'SQLite', { intermediates: true });
+        });
+
+        it('should create and delete a database in a shared container', async () => {
+          const sharedContainerRoot =
+            await FS.getSharedContainerUriAsync('group.dev.expo.Payments');
+          const dbDirectory = sharedContainerRoot + 'SQLite';
+          const dbUri = dbDirectory + '/test.db';
+
+          const db = await SQLite.openDatabaseAsync('test.db', {}, dbDirectory);
+          await db.execAsync(`
+DROP TABLE IF EXISTS users;
+CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY NOT NULL, name VARCHAR(64), k INT, j REAL);
+INSERT INTO users (name, k, j) VALUES ('Tim Duncan', 1, 23.4);
+`);
+          const results = await db.getAllAsync<UserEntity>('SELECT * FROM users');
+          expect(results.length).toBe(1);
+          await db.closeAsync();
+
+          let fileInfo = await FS.getInfoAsync(dbUri);
+          expect(fileInfo.exists).toBeTruthy();
+
+          await SQLite.deleteDatabaseAsync('test.db', dbDirectory);
+          fileInfo = await FS.getInfoAsync(dbUri);
+          expect(fileInfo.exists).toBeFalsy();
+        });
+
+        it('should support internal importDatabaseFromAssetAsync without using expo-file-system', async () => {
+          const sharedContainerRoot =
+            await FS.getSharedContainerUriAsync('group.dev.expo.Payments');
+          const dbDirectory = sharedContainerRoot + 'SQLite';
+          await SQLite.importDatabaseFromAssetAsync(
+            'test.db',
+            { assetId: require('../assets/asset-db.db') },
+            dbDirectory
+          );
+          const db = await SQLite.openDatabaseAsync('test.db', {}, dbDirectory);
+          const results = await db.getAllAsync<UserEntity>('SELECT * FROM users');
+          expect(results.length).toEqual(3);
+          expect(results[0].j).toBeCloseTo(23.4);
+          await db.closeAsync();
+        });
+      });
+    }
   });
 }
 

@@ -1,11 +1,13 @@
 import type { SQLiteOpenOptions } from './NativeDatabase';
 import type { DatabaseChangeEvent } from './SQLiteDatabase';
 declare const _default: {
-    NativeDatabase(databaseName: string, options?: SQLiteOpenOptions, serializedData?: Uint8Array): void;
+    NativeDatabase(databasePath: string, options?: SQLiteOpenOptions, serializedData?: Uint8Array): void;
+    ensureDatabasePathExistsAsync(databasePath: string): Promise<void>;
+    ensureDatabasePathExistsSync(databasePath: string): void;
     NativeStatement(): void;
-    deleteDatabaseAsync(databaseName: string): Promise<void>;
-    deleteDatabaseSync(databaseName: string): void;
-    importAssetDatabaseAsync(databaseName: string, assetDatabasePath: string, forceOverwrite: boolean): Promise<void>;
+    deleteDatabaseAsync(databasePath: string): Promise<void>;
+    deleteDatabaseSync(databasePath: string): void;
+    importAssetDatabaseAsync(databasePath: string, assetDatabasePath: string, forceOverwrite: boolean): Promise<void>;
     addListener(eventName: string, listener: (event: DatabaseChangeEvent) => void): never;
     removeListeners(): never;
 };

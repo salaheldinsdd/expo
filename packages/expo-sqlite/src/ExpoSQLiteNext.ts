@@ -3,10 +3,18 @@ import type { DatabaseChangeEvent } from './SQLiteDatabase';
 
 export default {
   NativeDatabase(
-    databaseName: string,
+    databasePath: string,
     options?: SQLiteOpenOptions,
     serializedData?: Uint8Array
   ): void {
+    throw new Error('Unimplemented');
+  },
+
+  async ensureDatabasePathExistsAsync(databasePath: string): Promise<void> {
+    throw new Error('Unimplemented');
+  },
+
+  ensureDatabasePathExistsSync(databasePath: string): void {
     throw new Error('Unimplemented');
   },
 
@@ -14,16 +22,16 @@ export default {
     throw new Error('Unimplemented');
   },
 
-  async deleteDatabaseAsync(databaseName: string): Promise<void> {
+  async deleteDatabaseAsync(databasePath: string): Promise<void> {
     throw new Error('Unimplemented');
   },
 
-  deleteDatabaseSync(databaseName: string): void {
+  deleteDatabaseSync(databasePath: string): void {
     throw new Error('Unimplemented');
   },
 
   importAssetDatabaseAsync(
-    databaseName: string,
+    databasePath: string,
     assetDatabasePath: string,
     forceOverwrite: boolean
   ): Promise<void> {
