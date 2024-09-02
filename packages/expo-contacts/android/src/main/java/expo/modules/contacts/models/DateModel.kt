@@ -1,10 +1,10 @@
 package expo.modules.contacts.models
 
+import android.content.ContentProviderOperation
 import android.database.Cursor
+import android.provider.ContactsContract
 import android.provider.ContactsContract.CommonDataKinds
 import expo.modules.contacts.Columns
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Locale
 
 class DateModel : BaseModel() {
@@ -22,25 +22,20 @@ class DateModel : BaseModel() {
 
   override fun fromMap(readableMap: Map<String, Any?>) {
     super.fromMap(readableMap)
-    val dateString = readableMap["date"] as String?
-    val hasYear = !dateString!!.startsWith("--")
-    val calendar = Calendar.getInstance()
-    val datePattern = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    val noYearPattern = SimpleDateFormat("--MM-dd", Locale.getDefault())
-    try {
-      if (hasYear) {
-        calendar.time = datePattern.parse(dateString)!!
-      } else {
-        calendar.time = noYearPattern.parse(dateString)!!
-      }
-    } catch (e: Exception) {
-      // TODO: ??
+
+    val year = (readableMap["year"] as? Double)?.toInt()
+    val month = (readableMap["month"] as? Double)?.toInt()
+    val day = (readableMap["day"] as? Double)?.toInt()
+
+    if (year != null) {
+      map.putInt("year", year)
     }
-    if (hasYear) {
-      map.putInt("year", calendar[Calendar.YEAR])
+    if (month != null) {
+      map.putInt("month", month + 1)
     }
-    map.putInt("month", calendar[Calendar.MONTH] + 1)
-    map.putInt("day", calendar[Calendar.DAY_OF_MONTH])
+    if (day != null) {
+      map.putInt("day", day)
+    }
   }
 
   override fun getLabelFromCursor(cursor: Cursor): String {
@@ -52,5 +47,36 @@ class DateModel : BaseModel() {
         CommonDataKinds.Event.TYPE_OTHER -> "other"
         else -> "unknown"
       }
+  }
+
+  override fun getInsertOperation(rawId: String?): ContentProviderOperation {
+    val op = ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+    if (rawId == null) {
+      op.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+    } else {
+      op.withValue(ContactsContract.Data.RAW_CONTACT_ID, rawId)
+    }
+
+    return op.withValue(Columns.MIMETYPE, contentType)
+      .withValue(ContactsContract.CommonDataKinds.Event.TYPE, mapStringToType(label))
+      .withValue(ContactsContract.CommonDataKinds.Event.START_DATE, formatDateString())
+      .withValue(ContactsContract.CommonDataKinds.Event.LABEL, label)
+      .build()
+  }
+
+  private fun formatDateString(): String? {
+    val year = map.getInt("year", -1).takeIf { it > 0 }
+    val month = map.getInt("month", -1).takeIf { it > 0 }
+    val day = map.getInt("day", -1).takeIf { it > 0 }
+
+    return when {
+      year != null && month != null && day != null ->
+        String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month, day)
+
+      month != null && day != null ->
+        String.format(Locale.getDefault(), "--%02d-%02d", month, day)
+
+      else -> null
+    }
   }
 }
