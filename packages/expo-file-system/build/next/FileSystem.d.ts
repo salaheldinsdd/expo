@@ -5,6 +5,7 @@ export declare class File extends ExpoFileSystem.FileSystemFile {
 }
 export declare class Directory extends ExpoFileSystem.FileSystemDirectory {
     constructor(path: Path);
+    list(): (File | Directory)[];
 }
 export declare function write(file: File, contents: string): Promise<void>;
 //# sourceMappingURL=FileSystem.d.ts.map
