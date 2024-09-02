@@ -12,6 +12,7 @@
 - Add basic React Server Component support. ([#29869](https://github.com/expo/expo/pull/29869) by [@EvanBacon](https://github.com/EvanBacon))
 - [iOS] Added `Image.loadAsync` API. ([#25079](https://github.com/expo/expo/pull/25079) by [@tsapeta](https://github.com/tsapeta))
 - [iOS] Added support for rendering shared image refs. ([#30661](https://github.com/expo/expo/pull/30661) by [@tsapeta](https://github.com/tsapeta))
+- [iOS][Android] Added `useImage` hook. ([#31171](https://github.com/expo/expo/pull/31171) by [@tsapeta](https://github.com/tsapeta))
 
 ### 🐛 Bug fixes
 
@@ -19,7 +20,6 @@
 - Add missing `react` and `react-native` peer dependencies for isolated modules. ([#30469](https://github.com/expo/expo/pull/30469) by [@byCedric](https://github.com/byCedric))
 - Add missing `react-native-web` optional peer dependency for isolated modules. ([#30689](https://github.com/expo/expo/pull/30689) by [@byCedric](https://github.com/byCedric))
 - [Web] Fix type incompatibility between style prop and `@types/react-native-web` ([#31150](https://github.com/expo/expo/pull/31150) by [@adamhari](https://github.com/adamhari))
-
 
 ### 💡 Others
 
