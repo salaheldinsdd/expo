@@ -6,12 +6,33 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.records.Field
+import expo.modules.kotlin.records.Record
+import expo.modules.kotlin.types.Enumerable
 
 const val PREFERENCE_KEY = "expoRootBackgroundColor"
+
+enum class SystemBarStyle(val value: String) : Enumerable {
+  LIGHT("light"),
+  DARK("dark")
+}
+
+class SystemBarsConfig : Record {
+  @Field
+  val statusBarStyle: SystemBarStyle? = null
+
+  @Field
+  val statusBarHidden: Boolean? = null
+
+  @Field
+  val navigationBarHidden: Boolean? = null
+}
 
 class SystemUIModule : Module() {
   private val currentActivity
@@ -58,6 +79,33 @@ class SystemUIModule : Module() {
         null
       }
     }
+
+    AsyncFunction("setSystemBarsConfigAsync") { config: SystemBarsConfig ->
+      val window = currentActivity.window
+      val insetsController = WindowInsetsControllerCompat(window, window.decorView)
+
+      config.statusBarStyle?.let {
+        insetsController.isAppearanceLightStatusBars = it == SystemBarStyle.DARK
+      }
+
+      if (config.statusBarHidden != null || config.navigationBarHidden != null) {
+        insetsController.systemBarsBehavior =
+          WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+        config.statusBarHidden?.let {
+          when (it) {
+            true -> insetsController.hide(WindowInsetsCompat.Type.statusBars())
+            else -> insetsController.show(WindowInsetsCompat.Type.statusBars())
+          }
+        }
+        config.navigationBarHidden?.let {
+          when (it) {
+            true -> insetsController.hide(WindowInsetsCompat.Type.navigationBars())
+            else -> insetsController.show(WindowInsetsCompat.Type.navigationBars())
+          }
+        }
+      }
+    }.runOnQueue(Queues.MAIN)
   }
 
   private fun setBackgroundColor(color: Int) {
