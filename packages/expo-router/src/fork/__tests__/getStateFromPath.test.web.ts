@@ -1,8 +1,9 @@
 import { getMockConfig } from '../../testing-library';
-import getPathFromState from '../getPathFromState';
-import getStateFromPath, {
-  stripBaseUrl,
+import { getPathFromState } from '../getPathFromState';
+import {
+  getStateFromPath,
   getUrlWithReactNavigationConcessions,
+  stripBaseUrl,
 } from '../getStateFromPath';
 
 beforeEach(() => {
@@ -102,39 +103,57 @@ describe(getUrlWithReactNavigationConcessions, () => {
   });
 });
 
-it(`parses hashes`, () => {
-  expect(
-    getStateFromPath('/hello#123', {
-      screens: {
-        hello: 'hello',
-      },
-    } as any)
-  ).toEqual({
-    routes: [
-      {
-        name: 'hello',
-        path: '/hello',
-        params: {
-          '#': '123',
-        },
-      },
-    ],
-  });
-
-  expect(getStateFromPath('/hello#123', getMockConfig(['[hello]']))).toEqual({
-    routes: [
-      {
-        name: '[hello]',
-        params: {
+describe('hash', () => {
+  it(`parses hashes`, () => {
+    expect(
+      getStateFromPath('/hello#123', {
+        screens: {
           hello: 'hello',
-          '#': '123',
         },
-        path: '/hello',
-      },
-    ],
+      } as any)
+    ).toEqual({
+      routes: [
+        {
+          name: 'hello',
+          path: '/hello',
+          params: {
+            '#': '123',
+          },
+        },
+      ],
+    });
   });
 
-  // TODO: Test rest params
+  it('parses hashes with dynamic routes', () => {
+    expect(getStateFromPath('/hello#123', getMockConfig(['[hello]']))).toEqual({
+      routes: [
+        {
+          name: '[hello]',
+          params: {
+            hello: 'hello',
+            '#': '123',
+          },
+          path: '/hello',
+        },
+      ],
+    });
+  });
+
+  it('parses hashes with query params', () => {
+    expect(getStateFromPath('/?#123', getMockConfig(['index']))).toEqual({
+      routes: [
+        {
+          name: 'index',
+          path: '/',
+          params: {
+            '#': '123',
+          },
+        },
+      ],
+    });
+
+    // TODO: Test rest params
+  });
 });
 
 it(`supports spaces`, () => {
@@ -158,7 +177,7 @@ it(`supports spaces`, () => {
       {
         name: '[hello world]',
         params: {
-          'hello world': 'hello%20world',
+          'hello world': 'hello world',
         },
         path: '/hello%20world',
       },
@@ -268,6 +287,20 @@ it(`adds dynamic route params from all levels of the path`, () => {
   });
 });
 
+it(`handles not-found routes`, () => {
+  expect(getStateFromPath('/missing-page', getMockConfig(['+not-found', 'index']))).toEqual({
+    routes: [
+      {
+        name: '+not-found',
+        params: {
+          'not-found': 'missing-page',
+        },
+        path: '/missing-page',
+      },
+    ],
+  });
+});
+
 it(`handles query params`, () => {
   expect(
     getStateFromPath('/?test=true&hello=world&array=1&array=2', getMockConfig(['index.tsx']))
@@ -301,5 +334,46 @@ it(`handles query params`, () => {
         path: '/?test=true&hello=world&array=1&array=2',
       },
     ],
+  });
+});
+
+describe('forked upstream tests', () => {
+  // Expo Router changes this functionality so all segments see the last :id
+  test('resolves nested path params with same name to correct screen', () => {
+    const path = '/foo/42/bar/43';
+
+    const config = {
+      initialRouteName: 'Foo',
+      screens: {
+        Foo: {
+          path: 'foo/:id',
+          screens: {
+            Bar: {
+              path: 'bar/:id',
+            },
+          },
+        },
+      },
+    };
+
+    const state = {
+      routes: [
+        {
+          name: 'Foo',
+          params: { id: '43' },
+          state: {
+            routes: [
+              {
+                name: 'Bar',
+                params: { id: '43' },
+                path,
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    expect(getStateFromPath<object>(path, config)).toEqual(state);
   });
 });

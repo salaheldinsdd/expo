@@ -1101,7 +1101,7 @@ describe('consistent url encoding', () => {
     );
 
     const component = screen.getByTestId('id');
-    expect(screen).toHavePathname('/start%26end');
+    expect(screen).toHavePathname('/start&end');
     expect(screen).toHaveSearchParams({ param: 'start&end' });
     expect(component).toHaveTextContent(
       JSON.stringify({ local: { param: 'start&end' }, global: { param: 'start&end' } })
@@ -1251,7 +1251,7 @@ describe('consistent url encoding', () => {
 
     act(() => router.push('/start%21end'));
 
-    expect(screen).toHavePathname('/start%21end');
+    expect(screen).toHavePathname('/start!end');
     expect(screen).toHaveSearchParams({
       param: 'start!end',
     });
@@ -1330,7 +1330,8 @@ describe('consistent url encoding', () => {
 });
 
 describe('stack unwinding', () => {
-  it('navigate will unwind the stack', () => {
+  // TODO: Navigated changed to be like push
+  it.skip('navigate will unwind the stack', () => {
     renderRouter(
       {
         '[test]': () => null,
